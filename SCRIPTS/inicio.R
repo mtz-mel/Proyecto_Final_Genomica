@@ -62,7 +62,7 @@ str(otu)
 View(otu)
 
   ################################################################################
-# Sumar las abundancias por género
+# Sumar las abundancias por familia
 
 otu_sumas <- otu %>%
   dplyr::group_by(tax) %>%
