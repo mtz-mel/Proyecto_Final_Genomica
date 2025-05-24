@@ -6,6 +6,7 @@ library(igraphdata)
 library(networkD3)
 library(RCy3)
 library(tidyverse)
+library(dplyr)
 
 #install.packages("remotes")
 #remotes::install_github("twbattaglia/MicrobeDS")
@@ -48,7 +49,29 @@ View(otu_table(physeq))
 
 #del combinado:
 otu <- as.data.frame(otu_table(physeq)) #extraer la tabla de OTU
+str(otu)
+
 tax <- as.data.frame(tax_table(physeq)) #extraer la tabla TAX 
+names(tax)
+View(tax)
+
+################################################################################
+# Agregar la información taxonómica a la tabla de abundancias
+otu$tax <- tax$Family
+str(otu)
+View(otu)
+
+  ################################################################################
+# Sumar las abundancias por género
+
+otu_sumas <- otu %>%
+  dplyr::group_by(tax) %>%
+  dplyr::summarise(across(where(is.numeric), sum), .groups = "drop")
+
+View(otu_sumas) #nivel de genero
+
+#a nivel de clase si hay numero mas
+################################################################################
 
 #Aestos despues los podemos separar por mas, pero para no mezclar el tipo de muestra primero :)
 #Base de datos con las muestras de heces:
@@ -67,21 +90,3 @@ saliva_muestras <- metadatos %>%
   pull(sample_id) #extraer los id
 #Abundancias de cada uno:
 saliva_abunancia<-otu_table(physeq)[,saliva_muestras]
-
-
-
-
-################################################################################
-# Agregar la información taxonómica a la tabla de abundancias
-otu$tax <- tax$Genus
-library(tidyverse)
-# Sumar las abundancias por género
-otu_summarized <- otu %>%
-  group_by(tax) %>%
-  summarise(across(where(is.numeric), sum))
-View(otu_summarized) #nivel de genero
-
-#a nivel de clase si hay numero mas
-################################################################################
-
-
