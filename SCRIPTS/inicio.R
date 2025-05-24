@@ -1,3 +1,7 @@
+
+###holis, me ven ? sjjs
+
+
 ###BASES DE DATOS###
 #Librerias----------------------------------------------------------------------
 #install.packages("igraph")
@@ -93,15 +97,3 @@ saliva_abunancia<-otu_table(physeq)[,saliva_muestras]
 ##########################
 
 
-
-
-
-
-
-
-
-
-
-#holi alo
-
-#puedes ver mis cambios ???
