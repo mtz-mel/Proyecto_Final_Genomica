@@ -93,6 +93,15 @@ saliva_abunancia<-otu_table(physeq)[,saliva_muestras]
 ##########################
 
 
+
+
+
+
+
+
+
+
+
 #holi alo
 
 #puedes ver mis cambios ???
