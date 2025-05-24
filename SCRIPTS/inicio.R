@@ -90,3 +90,9 @@ saliva_muestras <- metadatos %>%
   pull(sample_id) #extraer los id
 #Abundancias de cada uno:
 saliva_abunancia<-otu_table(physeq)[,saliva_muestras]
+##########################
+
+
+#holi alo
+
+#puedes ver mis cambios ???
