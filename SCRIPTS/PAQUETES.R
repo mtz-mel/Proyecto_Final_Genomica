@@ -1,0 +1,26 @@
+###Paquetes del articulo:
+library(data.table)
+library(reshape2)
+library(phyloseq)
+library(plyr)
+library(dplyr)
+
+#BiocManager::install("SpiecEasi")
+library(remotes)
+remotes::install_github("zdk123/SpiecEasi")
+library(SpiecEasi)
+
+library(ggplot2)
+library(igraph)
+library(gridExtra)
+library(ggpubr)
+library(ggsignif)
+library(gplots)
+library(devtools)
+library(stats)
+library(parallel)
+library(RColorBrewer)
+library(Hmisc)
+library(viridis)
+library(Matrix)
+
