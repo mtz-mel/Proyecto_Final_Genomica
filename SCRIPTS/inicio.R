@@ -1,3 +1,7 @@
+
+###holis, me ven ? sjjs
+
+
 ###BASES DE DATOS###
 #Librerias----------------------------------------------------------------------
 #install.packages("igraph")
@@ -90,3 +94,6 @@ saliva_muestras <- metadatos %>%
   pull(sample_id) #extraer los id
 #Abundancias de cada uno:
 saliva_abunancia<-otu_table(physeq)[,saliva_muestras]
+##########################
+
+
