@@ -68,9 +68,9 @@ otu_sumas <- otu %>%
   dplyr::group_by(tax) %>%
   dplyr::summarise(across(where(is.numeric), sum), .groups = "drop")
 
-View(otu_sumas) #nivel de genero
+View(otu_sumas) #nivel de Familia
 
-#a nivel de clase si hay numero mas
+
 ################################################################################
 
 #Aestos despues los podemos separar por mas, pero para no mezclar el tipo de muestra primero :)
