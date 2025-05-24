@@ -57,7 +57,7 @@ View(tax)
 
 ################################################################################
 # Agregar la información taxonómica a la tabla de abundancias
-otu$tax <- tax$Family
+otu$tax <- tax$Family #VER POR CUAL HACEMOS ESO!!!
 str(otu)
 View(otu)
 
