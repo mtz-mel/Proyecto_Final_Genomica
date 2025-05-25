@@ -195,10 +195,11 @@ plot(g_conocido,
 
 ```{r}
 # primera creaamos  una tabla comparativa con los datos de las tres redes
+metricas_todos    <- calcular_metricas(g_todos)
 tabla_comparativa_especie <- tibble(
-  Métrica = names(m_all),
-  Con_materia_obscura = unlist(m_all),
-  Sin_materia_obscura = unlist(m_known),
+  Métrica = names(metricas_todos),
+  Con_materia_obscura = unlist(metricas_todos),
+  Sin_materia_obscura = unlist(metricas_todos),
   Bootstrap = unlist(m_reducido)  
 )
 
