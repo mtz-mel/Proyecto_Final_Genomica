@@ -1,6 +1,6 @@
 
 ###holis, me ven ? sjjs
-
+#No jajaja
 
 ###BASES DE DATOS###
 #Librerias----------------------------------------------------------------------
@@ -59,6 +59,10 @@ tax <- as.data.frame(tax_table(physeq)) #extraer la tabla TAX
 names(tax)
 View(tax)
 
+#Guardar el objeto para usarlo en otros script y no andar cargando.
+save(physeq, file = "DATOS/physeq_data.RData")
+ #load("DATOS/physeq_data.RData") #se mantiene el nombre de physeq.
+ #class(physeq)
 ################################################################################
 # Agregar la información taxonómica a la tabla de abundancias
 otu$tax <- tax$Family #VER POR CUAL HACEMOS ESO!!!
@@ -87,6 +91,9 @@ heces_muestra <- metadatos %>%
 #Abundancias de cada uno:
 heces_abunancia<-otu_table(physeq)[,heces_muestra]
 
+class(heces_abunancia) #es un phyloseq
+
+
 #Base de datos con las muestras de saliva:
 # Sacar los id y separar:
 saliva_muestras <- metadatos %>% 
@@ -94,6 +101,7 @@ saliva_muestras <- metadatos %>%
   pull(sample_id) #extraer los id
 #Abundancias de cada uno:
 saliva_abunancia<-otu_table(physeq)[,saliva_muestras]
+class(saliva_abunancia) #es un phyloseq
 ##########################
 
 
