@@ -115,6 +115,9 @@ plot(feces_known,
 
 
 #PARA CARGARLAR EN CYTOSCAPE
+library(RCy3)
+cytoscapePing()
+
 createNetworkFromIgraph(feces_all,   title = "Red con materia obscura solo heces")
 createNetworkFromIgraph(feces_known, title = "Red sin materia obscura solo heces")
 
