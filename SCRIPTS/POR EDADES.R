@@ -78,6 +78,11 @@ plot(g_conocido.niños,
      edge.width = 1,
      main = "Red sin Materia Obscura en niños")
 
+library(RCy3)
+cytoscapePing()
+
+createNetworkFromIgraph(g_todos.niños,   title = "Red con materia oscura en niños")
+createNetworkFromIgraph(g_conocido.niños, title = "Red sin materia oscura en niños")
 
 # GRAFICAR COMPARACIÓN DE MÉTRICAS CON ggplot2
 library(ggplot2)
@@ -156,6 +161,11 @@ plot(g_conocido.infantes,
      edge.width = 1,
      main = "Red sin Materia Obscura en infantes")
 
+library(RCy3)
+cytoscapePing()
+
+createNetworkFromIgraph(g_todos.infantes,   title = "Red con materia oscura en infantes")
+createNetworkFromIgraph(g_conocido.infantes, title = "Red sin materia oscura en infantes")
 
 # GRAFICAR COMPARACIÓN DE MÉTRICAS CON ggplot2
 library(ggplot2)

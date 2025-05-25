@@ -665,6 +665,14 @@ plot(g_conocido.niños,
 
 ### Edición de las redes en Cytoscape para poder visualizarlas de mejor manera:
 
+Con materia oscura en niños (heces y saliva):
+
+![](images/Red con materia obscura adultos-01.png)
+
+Sin materia oscura en niños (heces y saliva):
+
+![](images/Red sin materia oscura en niños.png)
+
 ### Objeto infantes: Separar cada nuevo objeto con y sin material oscura.
 
 ```{r message=FALSE, warning=FALSE}
@@ -795,7 +803,11 @@ plot(g_conocido.infantes,
 
 Con materia oscura en infantes (heces y saliva):
 
+![](images/Red con materia oscura en infantes.png)
+
 Sin materia oscura infantes (saliva y heces):
+
+![](images/Red sin materia oscura en infantes.png)
 
 ### Objeto Adultos: Separar cada nuevo objeto con y sin material oscura.
 
