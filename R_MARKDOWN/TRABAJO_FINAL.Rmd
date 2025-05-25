@@ -14,10 +14,12 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Introducción 
-El termino hace referencia a todas las especies microbianas que no han sido caracterizadas.Impiden la caracterización de ecosistemas dominados por estos microorganismos, debido a la falta de entendimiento de sus funciones. 
+## Introducción
+
+El termino hace referencia a todas las especies microbianas que no han sido caracterizadas.Impiden la caracterización de ecosistemas dominados por estos microorganismos, debido a la falta de entendimiento de sus funciones.
 
 ## Redes tomando en cuenta los datos de todas las muestras.
+
 ### Librerías utilizadas:
 
 ```{r message=FALSE, warning=FALSE}
@@ -40,7 +42,6 @@ datos_sprockett <- SprockettTHData()
 ncol(datos_sprockett)
 
 ```
-
 
 ### Proceso para construir el objeto phyloseq:
 
@@ -181,5 +182,166 @@ plot(g_conocido,
 
 ![Red con materia obscura](../REDES/CON_MATERIA_OBSCURA.png)
 
+### ![Red sin materia obscura](../REDES/SIN_MATERIA_OBSCURA.png)Redes con objetos filtrados.
 
-![Red sin materia obscura](../REDES/SIN_MATERIA_OBSCURA.png)
+### Filtrado de los datos.
+
+```{r}
+physeq_feces <- subset_samples(physeq, Sample_Type == "Feces")
+save(physeq_feces, file = "DATOS/physeq_feces.RData")
+
+physeq_saliva <- subset_samples(physeq, Sample_Type == "Saliva") 
+save(physeq_saliva, file = "DATOS/physeq_saliva.RData")
+
+physeq_adultos <- subset_samples(physeq, Age_Class == "Adult")
+save(physeq_adultos, file = "DATOS/physeq_adultos.RData")
+
+physeq_infantes <- subset_samples(physeq, Age_Class == "Infant")
+save(physeq_infantes, file = "DATOS/physeq_infantes.RData")
+
+physeq_niños <- subset_samples(physeq, Age_Class == "Child")
+save(physeq_niños, file = "DATOS/physeq_niños.RData")
+
+```
+
+### Objeto Heces: Separar cada nuevo objeto con y sin material oscura.
+
+```{r message=FALSE, warning=FALSE}
+load("DATOS/physeq_feces.RData")
+load("DATOS/physeq_saliva.RData")
+
+physeq_spp_f <- tax_glom(physeq_feces, taxrank = "Species", NArm = FALSE) #agrupacion a nivel de especie
+  #esta incluye las NA
+
+physeq_sindm     <- subset_taxa(physeq_spp_f, !is.na(Species))  # sin materia oscura
+physeq_conmd      <- physeq_spp_f  # con materia oscura
+```
+
+### Filtrado por prevalencia:
+
+```{r message=FALSE, warning=FALSE}
+#
+prevalence_filter <- function(physeq_objeto, umbral = 0.1) {
+  prevalencia <- apply(otu_table(physeq_objeto), 1, function(x) mean(x > 0))
+  conservar <- names(prevalencia[prevalencia >= umbral])
+  prune_taxa(conservar, physeq_objeto)
+}
+#
+physeq_known_filt.feces <- prevalence_filter(physeq_sindm, 0.2) 
+physeq_all_filt.feces   <- prevalence_filter(physeq_conmd, 0.2)
+```
+
+### Renombramiento de especies para una red con mejor visualización e idenificación de NA's:
+
+```{r message=FALSE, warning=FALSE}
+#
+renombrar_especies <- function(physeq_objeto) {
+  tax <- tax_table(physeq_objeto)
+  especies <- as.character(tax[, "Species"])
+  
+  # Reemplazar NA con "Desconocido"
+  especies_limpias <- ifelse(is.na(especies), "Desconocido", especies)
+  
+  # Asegurar unicidad en los nombres
+  nombres_unicos <- make.unique(especies_limpias)
+  
+  # Asignar los nuevos nombres como nombres de los taxones
+  taxa_names(physeq_objeto) <- nombres_unicos
+  return(physeq_objeto)
+}
+#
+physeq_known_filt.feces <- renombrar_especies(physeq_known_filt.feces)
+physeq_all_filt.feces    <- renombrar_especies(physeq_all_filt.feces)
+```
+
+### Construcción de redes con SPIEC-EASI que utiliza el método de co-ocurrencia:
+
+```{r message=FALSE, warning=FALSE}
+feces_known <- spiec.easi( #NO DM
+  physeq_known_filt.feces,
+  method = "mb",
+  lambda.min.ratio = 1e-1,
+  nlambda = 20,
+  sel.criterion = "bstars",
+  pulsar.params = list(thresh = 0.1)
+)
+
+feces_all <- spiec.easi(
+  physeq_all_filt.feces,
+  method = "mb",
+  lambda.min.ratio = 1e-1,
+  nlambda = 20,
+  sel.criterion = "bstars",
+  pulsar.params = list(thresh = 0.1)
+)
+```
+
+### Transformacion a formato igraph
+
+```{r message=FALSE, warning=FALSE}
+feces_known <- adj2igraph(getRefit(feces_known), 
+                          vertex.attr = list(name = taxa_names(physeq_known_filt.feces)))
+feces_all   <- adj2igraph(getRefit(feces_all),   
+                          vertex.attr = list(name = taxa_names(physeq_all_filt.feces)))
+```
+
+### Cálculo de métricas de centralidad:
+
+```{r}
+#
+metricas <- function(g) {
+  list(
+    nodos = vcount(g),
+    aristas = ecount(g),
+    grado_medio = mean(degree(g)),
+    densidad = edge_density(g),
+    clustering = transitivity(g, type = "global"),
+    modularidad = modularity(cluster_louvain(g))
+  )
+}
+#
+feces.m_known <- metricas(feces_known)
+feces.m_all   <- metricas(feces_all)
+
+```
+
+### Tabla comparativa de metricas de centralidad:
+
+```{r}
+#COMPARACION:
+tibble(
+  Métrica        = names(feces.m_all),
+  Con_materia_obscura = unlist(feces.m_all),
+  Sin_materia_obscura = unlist(feces.m_known)
+)
+```
+
+### Observación de redes:
+
+```{r}
+# VISUALIZACIÓN con materia obscura)
+plot(feces_all,
+     vertex.size = degree(feces_all)*2,
+     vertex.color = cluster_louvain(feces_all)$membership,
+     vertex.label.cex = 0.7,
+     edge.width = 1,
+     main = "Red con Materia Obscura HECES")
+
+# VISUALIZACIÓN DE g_known (sin materia obscura)
+plot(feces_known,
+     vertex.size = degree(feces_known)*2,
+     vertex.color = cluster_louvain(feces_known)$membership,
+     vertex.label.cex = 0.7,
+     edge.width = 1,
+     main = "Red sin Materia Obscura HECES")
+```
+
+### Edición de las redes en Cytoscape para poder visualizarlas de mejor manera:
+
+Red con materia oscura:
+
+![](images/Red con materia obscura solo heces.png)
+
+Red sin materia oscura:
+
+![](images/Red sin materia obscura solo heces.png)
