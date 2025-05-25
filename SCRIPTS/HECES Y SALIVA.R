@@ -14,29 +14,19 @@ library(networkD3)
 library(RCy3)
 library(tidyverse)  # Incluye dplyr
 library(microbiomeDataSets)
+
+
 library(mia)
 library(phyloseq)
 library(SpiecEasi)
+
+#-------------------------------------------------------------------------------
+#Funciones y datos:
+load("DATOS/physeq_data.RData")
+load("DATOS/physeq_feces.RData")
+load("DATOS/physeq_saliva.RData")
 #--------------------------------------------------------------------------------
-#Encontrar la prevalencia de cada taxa por cada muestra.
-#Une al informacion taxonomicay al informacion de prevalencia de cada taxa en un data frame.
-prevdf <- apply(X = otu_table(physeq),MARGIN = ifelse(taxa_are_rows(physeq), yes=1, no=2), 
-               FUN=function(x){sum(x>0)}) 
-
-prevdf <- data.frame(Prevalence = prevdf, TotalAbundance = taxa_sums(physeq), tax_table(physeq))
-prevdf <- prevdf[prevdf$Prevalence > 0,] #remove taxa not present in samples
-
-#Ahora, utilizando el marco de datos prevdf resultante como entrada, 
-#se puede crear un gráfico de líneas de la prevalencia de taxones conocidos vs desconocidos a
-#nivel de género usando la función get_back_counts_for_line_plotf.
-  #prev_lineplot <- get_back_counts_for_line_plot(prevdf, "AMBIENTE")
-
-phylo_for_net <- get_back_res_meeting_min_occ(physeq, filter_val_percent=0.4)
-#resulting data will be list of 2- phyloseq, graph
-#phyloseq with only taxa meeting sample prevalence kept
-#graph created using SpiecEasi neighborhood algorithm on phyloseq
-
-################################################################################
+#HECES:
 physeq_spp_f <- tax_glom(physeq_feces, taxrank = "Species", NArm = FALSE)
 
 physeq_sindm     <- subset_taxa(physeq_spp_f, !is.na(Species))  # sin materia oscura
@@ -44,10 +34,10 @@ physeq_conmd      <- physeq_spp_f  # con materia oscura
 
 #FILTRADO DE PREVALENCIA:
 
-prevalence.filter.feces <- function(phy_1, threshold = 0.2) { 
-  prev <- apply(otu_table(phy_1), 1, function(x) mean(x > 0)) #calcular prevalencia de cda taxon
-  keep <- names(prev[prev >= threshold]) #seleccioanr los que son mayores
-  prune_taxa(keep, phy_1) #filtrado
+prevalence_filter <- function(phy, threshold = 0.1) {
+  prev <- apply(otu_table(phy), 1, function(x) mean(x > 0))
+  keep <- names(prev[prev >= threshold])
+  prune_taxa(keep, phy)
 }
 
 physeq_known_filt.feces <- prevalence_filter(physeq_sindm, 0.2) #aplciar la funcion y sacar nuevos objetos
@@ -125,7 +115,7 @@ createNetworkFromIgraph(feces_known, title = "Red sin materia obscura solo heces
 #SALIVA muestras:
 physeq_spp_s <- tax_glom(physeq_saliva, taxrank = "Species", NArm = FALSE)
 
-physeq_saliva.sin     <- subset_taxa(physeq_spp_f, !is.na(Species))  # sin materia oscura
+physeq_saliva.sin     <- subset_taxa(physeq_spp_s, !is.na(Species))  # sin materia oscura
 physeq_saliva.com       <- physeq_spp_s  # con materia oscura
 
 #FILTRADO DE PREVALENCIA:
