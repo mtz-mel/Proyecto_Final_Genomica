@@ -232,8 +232,7 @@ ggplot(df_metricas, aes(x = Métrica, y = Valor, fill = Red)) +
        x = "Métrica",
        y = "Valor",
        fill = "Tipo de red") +
-  coord_flip() # Rotar el gráfico para mejor legibilidad
-
+  coord_flip() 
 
 
 
