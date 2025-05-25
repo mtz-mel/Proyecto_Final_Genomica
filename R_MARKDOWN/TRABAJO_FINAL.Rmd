@@ -186,6 +186,9 @@ plot(g_conocido,
 ![Red con materia obscura](../REDES/CON_MATERIA_OBSCURA.png)
 
 ![Red sin materia obscura](../REDES/SIN_MATERIA_OBSCURA.png)
+
+**Red sin taxones aleatorios**
+
 ```{r}
 # creamos una función para eliminar un porcentaje aleatorio de taxones
 eliminar_taxones_azar <- function(physeq, porcentaje = 0.3) {
@@ -225,8 +228,6 @@ m_reducido <- metricas(g_reducido)
 
 # Visualización de la red reducida 
 ```
-
-Redes con objetos filtrados.
 
 ### **Edición de la red**
 
