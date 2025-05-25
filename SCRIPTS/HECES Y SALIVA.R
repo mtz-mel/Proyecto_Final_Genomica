@@ -127,9 +127,8 @@ physeq_saliva.com       <- physeq_spp_s  # con materia oscura
 
 #FILTRADO DE PREVALENCIA:
 
-
-physeq_known_filt.saliva <- prevalence_filter(physeq_saliva.sin, 0.2) #aplciar la funcion y sacar nuevos objetos
-physeq_all_filt.saliva   <- prevalence_filter(physeq_saliva.com, 0.2)
+physeq_known_filt.saliva <- filtrar_prevalencia(physeq_saliva.sin, 0.2) #aplciar la funcion y sacar nuevos objetos
+physeq_all_filt.saliva   <- filtrar_prevalencia(physeq_saliva.com, 0.2)
 
 # Aplicar renombramiento
 physeq_known_filt.saliva <- renombrar_especies(physeq_known_filt.saliva)

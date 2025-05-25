@@ -109,4 +109,13 @@ save(physeq_feces, file = "DATOS/physeq_feces.RData")
 
 physeq_saliva <- subset_samples(physeq, Sample_Type == "Saliva") #objeto con los datos filtrados
 save(physeq_saliva, file = "DATOS/physeq_saliva.RData")
+
+physeq_adultos <- subset_samples(physeq, Age_Class == "Adult")
+save(physeq_adultos, file = "DATOS/physeq_adultos.RData")
+
+physeq_infantes <- subset_samples(physeq, Age_Class == "Infant")
+save(physeq_infantes, file = "DATOS/physeq_infantes.RData")
+
+physeq_niños <- subset_samples(physeq, Age_Class == "Child")
+save(physeq_niños, file = "DATOS/physeq_niños.RData")
 #-----------------------------------------------------------------------------------------------

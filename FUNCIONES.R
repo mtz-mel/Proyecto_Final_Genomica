@@ -38,3 +38,8 @@ calcular_metricas <- function(grafo) {
 }
 
 #
+filtrar_prevalencia <- function(physeq_objeto, umbral = 0.1) {
+  prevalencia <- apply(otu_table(physeq_objeto), 1, function(x) mean(x > 0))
+  conservar <- names(prevalencia[prevalencia >= umbral])
+  prune_taxa(conservar, physeq_objeto)
+}
