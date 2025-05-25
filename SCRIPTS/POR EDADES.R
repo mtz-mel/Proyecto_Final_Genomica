@@ -97,7 +97,7 @@ ggplot(df_metricas.niños, aes(x = Métrica, y = Valor, fill = Red)) +
 
 #--------------------------------------------------------------------------------------------------
 #INFANTES:
-physeq_spp_infantes <- tax_glom(physeq_niños, taxrank = "Species", NArm = FALSE)
+physeq_spp_infantes <- tax_glom(physeq_infantes, taxrank = "Species", NArm = FALSE)
 
 physeq_infantes.sin     <- subset_taxa(physeq_spp_infantes, !is.na(Species))  # sin materia oscura
 physeq_infante.com       <- physeq_spp_infantes  # con materia oscura
