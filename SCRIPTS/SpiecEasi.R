@@ -72,12 +72,16 @@ g_fam_strong <- delete_edges(g_fam_se, E(g_fam_se)[weight < 0.2])
 
 
 # Color por comunidad y tamaño de nodo según grado
-windows()
+
 plot(g_fam_strong,
      vertex.size = degree(g_fam_strong)*2,
      vertex.color = V(g_fam_strong)$community,
      vertex.label.cex = 0.7,
      edge.width = E(g_fam_strong)$weight * 2,
      main = "Red de Familias (SPIEC-EASI)")
+
+library(RCy3)
+createNetworkFromIgraph(g_fam_strong, title = "Familias SPIEC-EASI")
+
 
 
