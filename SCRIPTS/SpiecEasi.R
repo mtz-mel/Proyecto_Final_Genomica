@@ -205,3 +205,36 @@ plot(g_known,
 
 createNetworkFromIgraph(g_all,   title = "Red con materia obscura")
 createNetworkFromIgraph(g_known, title = "Red sin materia obscura")
+
+
+
+####################
+#comparacion
+
+library(ggplot2)
+library(tidyr)
+
+# Crear tabla de métricas en formato largo
+df_metricas <- tibble(
+  Métrica        = names(m_all),
+  Con_materia_obscura = unlist(m_all),
+  Sin_materia_obscura = unlist(m_known)
+) %>% pivot_longer(cols = -Métrica, names_to = "Red", values_to = "Valor")
+
+# Ver estructura de los datos
+print(df_metricas)
+
+#hacer la grafica con ggplot
+ggplot(df_metricas, aes(x = Métrica, y = Valor, fill = Red)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  theme_minimal() +
+  labs(title = "Comparación de métricas de las redes",
+       x = "Métrica",
+       y = "Valor",
+       fill = "Tipo de red") +
+  coord_flip() # Rotar el gráfico para mejor legibilidad
+
+
+
+
+
