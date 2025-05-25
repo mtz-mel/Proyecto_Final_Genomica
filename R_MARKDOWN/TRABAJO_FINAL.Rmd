@@ -32,6 +32,9 @@ library(microbiomeDataSets)
 library(mia)
 library(phyloseq)
 library(SpiecEasi)
+library(ggplot2)
+library(tidyr)
+
 ```
 
 ### Datos a utilizar de "library(microbiomeDataSets)":
@@ -182,7 +185,51 @@ plot(g_conocido,
 
 ![Red con materia obscura](../REDES/CON_MATERIA_OBSCURA.png)
 
-### ![Red sin materia obscura](../REDES/SIN_MATERIA_OBSCURA.png)Redes con objetos filtrados.
+
+###   
+![Red sin materia obscura](../REDES/SIN_MATERIA_OBSCURA.png)Redes con objetos filtrados.
+
+### **Edición de la red** 
+
+![](images/Red con taxones eliminados.jpeg)
+
+### **Tabla comparativa** 
+
+```{r}
+# primera creaamos  una tabla comparativa con los datos de las tres redes
+tabla_comparativa_especie <- tibble(
+  Métrica = names(metricas_all),
+  Con_materia_obscura = unlist(m_all),
+  Sin_materia_obscura = unlist(m_known),
+  Bootstrap = unlist(m_reducido)  
+)
+
+tabla_comparativa_especie
+```
+
+**Comparación de métricas en gráfica**
+
+```{r}
+# convertir en  formato largo para ggplot
+df_metricas_especie <- tabla_comparativa_especie %>%
+  pivot_longer(cols = -Métrica, names_to = "Red", values_to = "Valor")
+
+# grafica de metricas
+ggplot(df_metricas_especie, aes(x = Métrica, y = Valor, fill = Red)) +
+  geom_bar(stat = "identity", position = "dodge", color = "black") +  #
+  scale_fill_manual(values = c("Con_materia_obscura" = "lightblue", 
+                               "Sin_materia_obscura" = "pink", 
+                               "Bootstrap" = "purple")) +  # colores para cada red
+  theme_minimal() +
+  coord_flip()+
+  labs(title = "Comparación de métricas entre redes",
+       x = "Métrica",
+       y = "Valor de métrica") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+```
+
 
 ### Filtrado de los datos.
 
@@ -257,6 +304,8 @@ physeq_all_filt.feces    <- renombrar_especies(physeq_all_filt.feces)
 ### Construcción de redes con SPIEC-EASI que utiliza el método de co-ocurrencia:
 
 ```{r message=FALSE, warning=FALSE}
+ #REDES SPIEC-EASI
+#analsiis de redes de co-ocurrencia 
 feces_known <- spiec.easi( #NO DM
   physeq_known_filt.feces,
   method = "mb",
@@ -345,3 +394,4 @@ Red con materia oscura:
 Red sin materia oscura:
 
 ![](images/Red sin materia obscura solo heces.png)
+
