@@ -24,5 +24,5 @@ library(Hmisc)
 library(viridis)
 library(Matrix)
 
-devtools::install_github("ConesaLab/MDM")
-library(MDM)
+devtools::install_github("ConesaLab/MDM", force = TRUE)
+library(mdmnets)

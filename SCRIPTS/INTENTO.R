@@ -2,7 +2,7 @@ library(dada2)
 library(phyloseq)
 library(Biostrings)
 
-BiocManager::install("RDPutils")
+remotes::install_github("jfq3/RDPutils")
 library(RDPutils)
 
 #Con el objeto physeq
@@ -19,4 +19,9 @@ prevdf <- prevdf[prevdf$Prevalence > 0,] #remove taxa not present in samples
 #Ahora, utilizando el marco de datos prevdf resultante como entrada, 
 #se puede crear un gráfico de líneas de la prevalencia de taxones conocidos vs desconocidos a
 #nivel de género usando la función get_back_counts_for_line_plotf.
-prev_lineplot <- get_back_counts_for_line_plotf(prevdf, "AMBIENTE")
+  #prev_lineplot <- get_back_counts_for_line_plot(prevdf, "AMBIENTE")
+
+phylo_for_net <- get_back_res_meeting_min_occ(physeq, filter_val_percent=0.4)
+#resulting data will be list of 2- phyloseq, graph
+#phyloseq with only taxa meeting sample prevalence kept
+#graph created using SpiecEasi neighborhood algorithm on phyloseq
