@@ -43,3 +43,14 @@ filtrar_prevalencia <- function(physeq_objeto, umbral = 0.1) {
   conservar <- names(prevalencia[prevalencia >= umbral])
   prune_taxa(conservar, physeq_objeto)
 }
+
+metricas <- function(g) {
+  list(
+    nodos = vcount(g),
+    aristas = ecount(g),
+    grado_medio = mean(degree(g)),
+    densidad = edge_density(g),
+    clustering = transitivity(g, type = "global"),
+    modularidad = modularity(cluster_louvain(g))
+  )
+}
