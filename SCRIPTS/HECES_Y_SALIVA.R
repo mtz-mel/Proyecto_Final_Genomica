@@ -94,8 +94,19 @@ tibble(
   Métrica        = names(feces.m_all),
   Con_materia_obscura = unlist(feces.m_all),
   Sin_materia_obscura = unlist(feces.m_known)
-)
+) -> tabla.comparativa.heces
 
+df_metricas.heces <- tabla.comparativa.heces %>%
+  pivot_longer(cols = -Métrica, names_to = "Red", values_to = "Valor")
+
+ggplot(df_metricas.heces, aes(x = Métrica, y = Valor, fill = Red)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  theme_minimal() +
+  labs(title = "Comparación de métricas de las redes",
+       x = "Métrica",
+       y = "Valor",
+       fill = "Tipo de red") +
+  coord_flip()
 
 # VISUALIZACIÓN con materia obscura)
 plot(feces_all,
@@ -167,12 +178,12 @@ saliva.m_known <- metricas(saliva_known)
 saliva.m_all   <- metricas(saliva_all)
 
 #COMPARACION:
-tibble(
-  Métrica        = names(saliva.m_all),
-  Con_materia_obscura = unlist(saliva.m_all),
-  Sin_materia_obscura = unlist(saliva.m_known)
+tabla_comparativa.saliva <- tibble(
+  Métrica              = names(saliva.m_all),
+  Con_materia_obscura  = unlist(saliva.m_all),
+  Sin_materia_obscura  = unlist(saliva.m_known)
 )
-
+print(tabla_comparativa.adultos)
 # VISUALIZACIÓN con materia obscura)
 plot(saliva_all,
      vertex.size = degree(saliva_all)*2,
@@ -194,3 +205,19 @@ cytoscapePing()
 
 createNetworkFromIgraph(saliva_all,   title = "Red con materia obscura solo saliva")
 createNetworkFromIgraph(saliva_known, title = "Red sin materia obscura solo saliva")
+
+# GRAFICAR COMPARACIÓN DE MÉTRICAS CON ggplot2
+library(ggplot2)
+library(tidyr)
+
+df_metricas.adultos <- tabla_comparativa.saliva %>%
+  pivot_longer(cols = -Métrica, names_to = "Red", values_to = "Valor")
+
+ggplot(df_metricas.adultos, aes(x = Métrica, y = Valor, fill = Red)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  theme_minimal() +
+  labs(title = "Comparación de métricas de las redes",
+       x = "Métrica",
+       y = "Valor",
+       fill = "Tipo de red") +
+  coord_flip()
