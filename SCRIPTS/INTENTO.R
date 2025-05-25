@@ -40,7 +40,7 @@ phylo_for_net <- get_back_res_meeting_min_occ(physeq, filter_val_percent=0.4)
 physeq_spp_f <- tax_glom(physeq_feces, taxrank = "Species", NArm = FALSE)
 
 physeq_sindm     <- subset_taxa(physeq_spp_f, !is.na(Species))  # sin materia oscura
-physeq_sindm       <- physeq_spp_f  # con materia oscura
+physeq_conmd      <- physeq_spp_f  # con materia oscura
 
 #FILTRADO DE PREVALENCIA:
 
@@ -51,7 +51,7 @@ prevalence.filter.feces <- function(phy_1, threshold = 0.2) {
 }
 
 physeq_known_filt.feces <- prevalence_filter(physeq_sindm, 0.2) #aplciar la funcion y sacar nuevos objetos
-physeq_all_filt.feces   <- prevalence_filter(physeq_sindm, 0.2)
+physeq_all_filt.feces   <- prevalence_filter(physeq_conmd, 0.2)
 
 # REDES SPIEC-EASI
 #analsiis de redes de co-ocurrencia 
@@ -120,3 +120,71 @@ plot(feces_known,
 #PARA CARGARLAR EN CYTOSCAPE
 createNetworkFromIgraph(feces_all,   title = "Red con materia obscura solo heces")
 createNetworkFromIgraph(feces_known, title = "Red sin materia obscura solo heces")
+
+#-------------------------------------------------------------------------------
+#SALIVA muestras:
+physeq_spp_s <- tax_glom(physeq_saliva, taxrank = "Species", NArm = FALSE)
+
+physeq_saliva.sin     <- subset_taxa(physeq_spp_f, !is.na(Species))  # sin materia oscura
+physeq_saliva.com       <- physeq_spp_s  # con materia oscura
+
+#FILTRADO DE PREVALENCIA:
+
+
+physeq_known_filt.saliva <- prevalence_filter(physeq_saliva.sin, 0.2) #aplciar la funcion y sacar nuevos objetos
+physeq_all_filt.saliva   <- prevalence_filter(physeq_saliva.com, 0.2)
+
+# REDES SPIEC-EASI
+#analsiis de redes de co-ocurrencia 
+saliva_known <- spiec.easi( #NO DM
+  physeq_known_filt.saliva,
+  method = "mb",
+  lambda.min.ratio = 1e-1,
+  nlambda = 20,
+  sel.criterion = "bstars",
+  pulsar.params = list(thresh = 0.1)
+)
+
+saliva_all <- spiec.easi(
+  physeq_all_filt.saliva,
+  method = "mb",
+  lambda.min.ratio = 1e-1,
+  nlambda = 20,
+  sel.criterion = "bstars",
+  pulsar.params = list(thresh = 0.1)
+)
+
+saliva_known <- adj2igraph(getRefit(saliva_known), 
+                          vertex.attr = list(name = taxa_names(physeq_known_filt.saliva)))
+saliva_all   <- adj2igraph(getRefit(saliva_all),   
+                          vertex.attr = list(name = taxa_names(physeq_all_filt.saliva)))
+
+
+saliva.m_known <- metricas(saliva_known)
+saliva.m_all   <- metricas(saliva_all)
+
+#COMPARACION:
+tibble(
+  Métrica        = names(saliva.m_all),
+  Con_materia_obscura = unlist(saliva.m_all),
+  Sin_materia_obscura = unlist(saliva.m_known)
+)
+
+
+# VISUALIZACIÓN con materia obscura)
+plot(saliva_all,
+     vertex.size = degree(saliva_all)*2,
+     vertex.color = cluster_louvain(saliva_all)$membership,
+     vertex.label.cex = 0.7,
+     edge.width = 1,
+     main = "Red con Materia Obscura saliva")
+
+# VISUALIZACIÓN DE g_known (sin materia obscura)
+plot(saliva_known,
+     vertex.size = degree(saliva_known)*2,
+     vertex.color = cluster_louvain(saliva_known)$membership,
+     vertex.label.cex = 0.7,
+     edge.width = 1,
+     main = "Red sin Materia Obscura saliva")
+
+

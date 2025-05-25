@@ -106,5 +106,5 @@ class(saliva_abunancia) #es un phyloseq
 #---------------------------------------------------------------------------------------------
 physeq_feces <- subset_samples(physeq, Sample_Type == "Feces") #objeto con los datos filtrados.
 
-hyseq_saliva <- subset_samples(physeq, Sample_Type == "Saliva") #objeto con los datos filtrados
+physeq_saliva <- subset_samples(physeq, Sample_Type == "Saliva") #objeto con los datos filtrados
 #-----------------------------------------------------------------------------------------------
