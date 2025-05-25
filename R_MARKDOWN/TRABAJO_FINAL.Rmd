@@ -224,7 +224,7 @@ se_reducido <- spiec.easi(
 g_reducido <- adj2igraph(getRefit(se_reducido), vertex.attr = list(name = taxa_names(physeq_reducido_filt)))
 
 # se alcular métricas de la nueva red
-m_reducido <- metricas(g_reducido)
+m_reducido <- calcular_metricas(g_reducido)
 
 # Visualización de la red reducida 
 ```
