@@ -16,7 +16,7 @@ load("DATOS/physeq_adultos.RData")
 load("DATOS/physeq_infantes.RData")
 load("DATOS/physeq_niños.RData")
 
-source("FUNCIONES.R")
+source("FUNCIONES/FUNCIONES.R")
 #-------------------------------------------------------------------------------
 #NIÑOS
 physeq_spp_niños <- tax_glom(physeq_niños, taxrank = "Species", NArm = FALSE)
@@ -172,3 +172,11 @@ ggplot(df_metricas.infantes, aes(x = Métrica, y = Valor, fill = Red)) +
        y = "Valor",
        fill = "Tipo de red") +
   coord_flip()
+
+#-----------------------------------------------------------------------------------------
+#ADULTOS
+physeq_spp_adultos <- tax_glom(physeq_adultos, taxrank = "Species", NArm = FALSE)
+
+physeq_adultos.sin     <- subset_taxa(physeq_spp_adultos, !is.na(Species))  # sin materia oscura
+physeq_adultos.com       <- physeq_spp_adultos  # con materia oscura
+

@@ -18,7 +18,7 @@ load("DATOS/physeq_data.RData")
 load("DATOS/physeq_feces.RData")
 load("DATOS/physeq_saliva.RData")
 
-source("FUNCIONES.R")
+source("FUNCIONES/FUNCIONES.R")
 #--------------------------------------------------------------------------------
 #HECES:
 physeq_spp_f <- tax_glom(physeq_feces, taxrank = "Species", NArm = FALSE) #agrupacion a nivel de especie
