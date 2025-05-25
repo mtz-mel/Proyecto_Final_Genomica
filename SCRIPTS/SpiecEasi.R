@@ -357,13 +357,17 @@ createNetworkFromIgraph(g_reducido, title = "Red con 30% de taxones eliminados")
 library(ggplot2)
 library(tidyr)
 
+
+
+
 # primera creaamos  una tabla comparativa con los datos de las tres redes
 tabla_comparativa_especie <- tibble(
-  Métrica = names(metricas_todos),
-  Con_materia_obscura = unlist(metricas_todos),
-  Sin_materia_obscura = unlist(metricas_conocido),
+  Métrica = names(metricas_all),
+  Con_materia_obscura = unlist(m_all),
+  Sin_materia_obscura = unlist(m_known),
   Bootstrap = unlist(m_reducido)  
 )
+
 
 # convertir en  formato largo para ggplot
 df_metricas_especie <- tabla_comparativa_especie %>%
