@@ -233,27 +233,22 @@ ggplot(df_metricas_especie, aes(x = Métrica, y = Valor, fill = Red)) +
 
 ```{r}
 physeq_feces <- subset_samples(physeq, Sample_Type == "Feces")
-save(physeq_feces, file = "DATOS/physeq_feces.RData")
 
 physeq_saliva <- subset_samples(physeq, Sample_Type == "Saliva") 
-save(physeq_saliva, file = "DATOS/physeq_saliva.RData")
 
 physeq_adultos <- subset_samples(physeq, Age_Class == "Adult")
-save(physeq_adultos, file = "DATOS/physeq_adultos.RData")
 
 physeq_infantes <- subset_samples(physeq, Age_Class == "Infant")
-save(physeq_infantes, file = "DATOS/physeq_infantes.RData")
 
 physeq_niños <- subset_samples(physeq, Age_Class == "Child")
-save(physeq_niños, file = "DATOS/physeq_niños.RData")
 
 ```
 
 ### Objeto Heces: Separar cada nuevo objeto con y sin material oscura.
 
 ```{r message=FALSE, warning=FALSE}
-load("DATOS/physeq_feces.RData")
-load("DATOS/physeq_saliva.RData")
+physeq_feces <- subset_samples(physeq, Sample_Type == "Feces")
+
 
 physeq_spp_f <- tax_glom(physeq_feces, taxrank = "Species", NArm = FALSE) #agrupacion a nivel de especie
   #esta incluye las NA
@@ -396,7 +391,7 @@ Red sin materia oscura heces:
 ### Objeto Saliva: Separar cada nuevo objeto con y sin material oscura.
 
 ```{r message=FALSE, warning=FALSE}
-load("DATOS/physeq_saliva.RData")
+physeq_saliva <- subset_samples(physeq, Sample_Type == "Saliva") 
 
 physeq_spp_s <- tax_glom(physeq_saliva, taxrank = "Species", NArm = FALSE)
 
@@ -539,7 +534,7 @@ Red sin materia oscura saliva:
 ### Objeto niños: Separar cada nuevo objeto con y sin material oscura.
 
 ```{r message=FALSE, warning=FALSE}
-load("DATOS/physeq_niños.RData")
+physeq_niños <- subset_samples(physeq, Age_Class == "Child")
 
 physeq_spp_niños <- tax_glom(physeq_niños, taxrank = "Species", NArm = FALSE)
 
@@ -677,7 +672,8 @@ Sin materia oscura en niños (heces y saliva):
 ### Objeto infantes: Separar cada nuevo objeto con y sin material oscura.
 
 ```{r message=FALSE, warning=FALSE}
-load("DATOS/physeq_infantes.RData")
+physeq_infantes <- subset_samples(physeq, Age_Class == "Infant")
+
 physeq_spp_infantes <- tax_glom(physeq_infantes, taxrank = "Species", NArm = FALSE)
 
 physeq_infantes.sin     <- subset_taxa(physeq_spp_infantes, !is.na(Species))  # sin materia oscura
@@ -813,7 +809,7 @@ Sin materia oscura infantes (saliva y heces):
 ### Objeto Adultos: Separar cada nuevo objeto con y sin material oscura.
 
 ```{r}
-load("DATOS/physeq_adultos.RData")
+physeq_adultos <- subset_samples(physeq, Age_Class == "Adult")
 
 physeq_spp_adultos <- tax_glom(physeq_adultos, taxrank = "Species", NArm = FALSE)
 
