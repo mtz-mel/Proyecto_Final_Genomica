@@ -793,6 +793,10 @@ plot(g_conocido.infantes,
 
 ### Edición de las redes en Cytoscape para poder visualizarlas de mejor manera:
 
+Con materia oscura en infantes (heces y saliva):
+
+Sin materia oscura infantes (saliva y heces):
+
 ### Objeto Adultos: Separar cada nuevo objeto con y sin material oscura.
 
 ```{r}
