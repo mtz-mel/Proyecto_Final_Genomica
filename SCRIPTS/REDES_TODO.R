@@ -171,7 +171,7 @@ eliminar_taxones_azar <- function(physeq, porcentaje = 0.3) {
 
 #una vez echa la funcion la aplicamos para eliminar 30% de taxones
 
-physeq_reducido <- eliminar_taxones_azar(physeq_conocido)
+physeq_reducido <- eliminar_taxones_azar(physeq_conocido_filtrado)
 
 # filtrado de prevalencia en la nueva red
 physeq_reducido_filt <- prevalence_filter(physeq_reducido, 0.1)
@@ -242,8 +242,6 @@ library(ggplot2)
 library(tidyr)
 
 
-
-
 # primera creaamos  una tabla comparativa con los datos de las tres redes
 tabla_comparativa_especie <- tibble(
   Métrica = names(metricas_all),
@@ -251,6 +249,10 @@ tabla_comparativa_especie <- tibble(
   Sin_materia_obscura = unlist(m_known),
   Bootstrap = unlist(m_reducido)  
 )
+
+tabla_comparativa_especie
+
+#boxplot de las redes 
 
 
 # convertir en  formato largo para ggplot
@@ -267,7 +269,7 @@ ggplot(df_metricas_especie, aes(x = Red, y = Valor, fill = Red)) +
     axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
     axis.title = element_text(face = "bold", size = 16),
     legend.position = "top",
-  ) +
+     ) +
   labs(title = "Comparación de métricas entre redes a nivel de especie y bootstrap",
        x = "Tipo de Red",
        y = "Valor de Métrica") 
@@ -297,4 +299,4 @@ ggplot(df_metricas_especie, aes(x = Métrica, y = Valor, fill = Red)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 
-#############
+

@@ -14,10 +14,12 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Introducción 
-El termino hace referencia a todas las especies microbianas que no han sido caracterizadas.Impiden la caracterización de ecosistemas dominados por estos microorganismos, debido a la falta de entendimiento de sus funciones. 
+## Introducción
+
+El termino hace referencia a todas las especies microbianas que no han sido caracterizadas.Impiden la caracterización de ecosistemas dominados por estos microorganismos, debido a la falta de entendimiento de sus funciones.
 
 ## Redes tomando en cuenta los datos de todas las muestras.
+
 ### Librerías utilizadas:
 
 ```{r message=FALSE, warning=FALSE}
@@ -30,6 +32,9 @@ library(microbiomeDataSets)
 library(mia)
 library(phyloseq)
 library(SpiecEasi)
+library(ggplot2)
+library(tidyr)
+
 ```
 
 ### Datos a utilizar de "library(microbiomeDataSets)":
@@ -40,7 +45,6 @@ datos_sprockett <- SprockettTHData()
 ncol(datos_sprockett)
 
 ```
-
 
 ### Proceso para construir el objeto phyloseq:
 
@@ -181,5 +185,100 @@ plot(g_conocido,
 
 ![Red con materia obscura](../REDES/CON_MATERIA_OBSCURA.png)
 
-
 ![Red sin materia obscura](../REDES/SIN_MATERIA_OBSCURA.png)
+
+## **Redes sin taxones aleatorios**
+
+```{r}
+
+# creamos una función para eliminar un porcentaje aleatorio de taxones
+eliminar_taxones_azar <- function(physeq, porcentaje = 0.3) {
+  # extraemos los nombres de taxones
+  taxones <- taxa_names(physeq)
+  
+  # Seleccionar 30% de taxones al azar
+  eliminar <- sample(taxones, size = round(length(taxones) * porcentaje))
+  
+  # filtrar el phyloseq sin esos taxones
+  prune_taxa(setdiff(taxones, eliminar), physeq)
+}
+
+
+#una vez echa la funcion la aplicamos para eliminar 30% de taxones
+
+physeq_reducido <- eliminar_taxones_azar(physeq_conocido_filtrado)
+
+# filtrado de prevalencia en la nueva red
+physeq_reducido_filt <- prevalence_filter(physeq_reducido, 0.1)
+
+# hacemos la red con el mismo SPIEC-EASI pero con el phyloseq reducido
+se_reducido <- spiec.easi(
+  physeq_reducido_filt,
+  method = "mb",
+  lambda.min.ratio = 1e-1,
+  nlambda = 20,
+  sel.criterion = "bstars",
+  pulsar.params = list(thresh = 0.1)
+)
+
+# convertimos a objeto igraph
+g_reducido <- adj2igraph(getRefit(se_reducido), vertex.attr = list(name = taxa_names(physeq_reducido_filt)))
+
+# se alcular métricas de la nueva red
+m_reducido <- metricas(g_reducido)
+
+# Visualización de la red reducida
+plot(g_reducido,
+     vertex.size = degree(g_reducido)*2,
+     vertex.color = cluster_louvain(g_reducido)$membership,
+     vertex.label.cex = 0.7,
+     edge.width = 1,
+     main = "Red con 30% de taxones eliminados")
+
+# Crear red en Cytoscape pa verla más bonita 
+createNetworkFromIgraph(g_reducido, title = "Red con 30% de taxones eliminados")
+
+```
+
+### **Edición de la red** 
+
+![](images/Red con taxones eliminados.jpeg)
+
+### **Tabla comparativa** 
+
+```{r}
+
+
+# primera creaamos  una tabla comparativa con los datos de las tres redes
+tabla_comparativa_especie <- tibble(
+  Métrica = names(metricas_all),
+  Con_materia_obscura = unlist(m_all),
+  Sin_materia_obscura = unlist(m_known),
+  Bootstrap = unlist(m_reducido)  
+)
+
+tabla_comparativa_especie
+```
+
+**Comparación de métricas en gráfica**
+
+```{r}
+# convertir en  formato largo para ggplot
+df_metricas_especie <- tabla_comparativa_especie %>%
+  pivot_longer(cols = -Métrica, names_to = "Red", values_to = "Valor")
+
+# grafica de metricas
+ggplot(df_metricas_especie, aes(x = Métrica, y = Valor, fill = Red)) +
+  geom_bar(stat = "identity", position = "dodge", color = "black") +  #
+  scale_fill_manual(values = c("Con_materia_obscura" = "lightblue", 
+                               "Sin_materia_obscura" = "pink", 
+                               "Bootstrap" = "purple")) +  # colores para cada red
+  theme_minimal() +
+  coord_flip()+
+  labs(title = "Comparación de métricas entre redes",
+       x = "Métrica",
+       y = "Valor de métrica") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+```
