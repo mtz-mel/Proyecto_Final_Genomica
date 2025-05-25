@@ -185,7 +185,48 @@ plot(g_conocido,
 
 ![Red con materia obscura](../REDES/CON_MATERIA_OBSCURA.png)
 
-![Red sin materia obscura](../REDES/SIN_MATERIA_OBSCURA.png)Redes con objetos filtrados.
+![Red sin materia obscura](../REDES/SIN_MATERIA_OBSCURA.png)
+```{r}
+# creamos una función para eliminar un porcentaje aleatorio de taxones
+eliminar_taxones_azar <- function(physeq, porcentaje = 0.3) {
+  # extraemos los nombres de taxones
+  taxones <- taxa_names(physeq)
+  
+  # Seleccionar 30% de taxones al azar #es un valor arbitrario no se cual ponerle sjsj
+  eliminar <- sample(taxones, size = round(length(taxones) * porcentaje))
+  
+  # filtrar el phyloseq sin esos taxones
+  prune_taxa(setdiff(taxones, eliminar), physeq)
+}
+
+
+#una vez echa la funcion la aplicamos para eliminar 30% de taxones
+
+physeq_reducido <- eliminar_taxones_azar(physeq_conocido_filtrado)
+
+# filtrado de prevalencia en la nueva red
+physeq_reducido_filt <- prevalence_filter(physeq_reducido, 0.1)
+
+# hacemos la red con el mismo SPIEC-EASI pero con el phyloseq reducido
+se_reducido <- spiec.easi(
+  physeq_reducido_filt,
+  method = "mb",
+  lambda.min.ratio = 1e-1,
+  nlambda = 20,
+  sel.criterion = "bstars",
+  pulsar.params = list(thresh = 0.1)
+)
+
+# convertimos a objeto igraph
+g_reducido <- adj2igraph(getRefit(se_reducido), vertex.attr = list(name = taxa_names(physeq_reducido_filt)))
+
+# se alcular métricas de la nueva red
+m_reducido <- metricas(g_reducido)
+
+# Visualización de la red reducida 
+```
+
+Redes con objetos filtrados.
 
 ### **Edición de la red**
 
@@ -194,16 +235,21 @@ plot(g_conocido,
 ### **Tabla comparativa**
 
 ```{r}
-# primera creaamos  una tabla comparativa con los datos de las tres redes
-metricas_todos    <- calcular_metricas(g_todos)
+#  para cada red
+metricas_todos <- calcular_metricas(g_todos)
+metricas_conocido <- calcular_metricas(g_conocido)
+metricas_bootstrap <- calcular_metricas(g_reducido)  # Red con 30% de taxones eliminados
+
+# Crear tabla comparativa de métricas
 tabla_comparativa_especie <- tibble(
   Métrica = names(metricas_todos),
   Con_materia_obscura = unlist(metricas_todos),
-  Sin_materia_obscura = unlist(metricas_todos),
-  Bootstrap = unlist(m_reducido)  
+  Sin_materia_obscura = unlist(metricas_conocido),
+  Bootstrap = unlist(metricas_bootstrap)
 )
 
-tabla_comparativa_especie
+# Mostrar la tabla
+print(tabla_comparativa_especie)
 ```
 
 **Comparación de métricas en gráfica**
@@ -663,11 +709,11 @@ plot(g_conocido.niños,
 
 Con materia oscura en niños (heces y saliva):
 
-![](images/Red con materia obscura adultos-01.png)
+![](images/Red%20con%20materia%20obscura%20adultos-01.png)
 
 Sin materia oscura en niños (heces y saliva):
 
-![](images/Red sin materia oscura en niños.png)
+![](images/Red%20sin%20materia%20oscura%20en%20niños.png)
 
 ### Objeto infantes: Separar cada nuevo objeto con y sin material oscura.
 
@@ -800,11 +846,11 @@ plot(g_conocido.infantes,
 
 Con materia oscura en infantes (heces y saliva):
 
-![](images/Red con materia oscura en infantes.png)
+![](images/Red%20con%20materia%20oscura%20en%20infantes.png)
 
 Sin materia oscura infantes (saliva y heces):
 
-![](images/Red sin materia oscura en infantes.png)
+![](images/Red%20sin%20materia%20oscura%20en%20infantes.png)
 
 ### Objeto Adultos: Separar cada nuevo objeto con y sin material oscura.
 
@@ -940,8 +986,8 @@ plot(g_conocido.adultos,
 
 Con materia oscura en adultos (heces y saliva):
 
-![](images/Red con materia obscura adultos.png)
+![](images/Red%20con%20materia%20obscura%20adultos.png)
 
 Sin materia oscura adultos (saliva y heces):
 
-![](images/Red sin materia obscura adultos.png)
+![](images/Red%20sin%20materia%20obscura%20adultos.png)
