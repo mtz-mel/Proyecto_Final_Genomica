@@ -1,23 +1,15 @@
 library(dada2)
 library(phyloseq)
 library(Biostrings)
-
-remotes::install_github("jfq3/RDPutils")
+  #remotes::install_github("jfq3/RDPutils")
 library(RDPutils)
-
-#Con el objeto physeq
-load("DATOS/physeq_data.RData")
-
 library(igraph)
 library(igraphdata)
 library(networkD3)
 library(RCy3)
 library(tidyverse)  # Incluye dplyr
 library(microbiomeDataSets)
-
-
 library(mia)
-library(phyloseq)
 library(SpiecEasi)
 
 #-------------------------------------------------------------------------------
@@ -25,23 +17,36 @@ library(SpiecEasi)
 load("DATOS/physeq_data.RData")
 load("DATOS/physeq_feces.RData")
 load("DATOS/physeq_saliva.RData")
+
+source("FUNCIONES.R")
 #--------------------------------------------------------------------------------
 #HECES:
-physeq_spp_f <- tax_glom(physeq_feces, taxrank = "Species", NArm = FALSE)
+physeq_spp_f <- tax_glom(physeq_feces, taxrank = "Species", NArm = FALSE) #agrupacion a nivel de especie
+  #esta incluye las NA
 
 physeq_sindm     <- subset_taxa(physeq_spp_f, !is.na(Species))  # sin materia oscura
 physeq_conmd      <- physeq_spp_f  # con materia oscura
 
 #FILTRADO DE PREVALENCIA:
-
+#-------------------------------------------------------------------------------------------------------
 prevalence_filter <- function(phy, threshold = 0.1) {
   prev <- apply(otu_table(phy), 1, function(x) mean(x > 0))
   keep <- names(prev[prev >= threshold])
   prune_taxa(keep, phy)
 }
+#--------------------------------------------------------------------------------------------------------
+
 
 physeq_known_filt.feces <- prevalence_filter(physeq_sindm, 0.2) #aplciar la funcion y sacar nuevos objetos
 physeq_all_filt.feces   <- prevalence_filter(physeq_conmd, 0.2)
+
+#Renomabrar: si tienen NA como desconocido para formar las redes.
+#Funcion: renombrar_especies:
+
+# Aplicar renombramiento
+physeq_known_filt.feces <- renombrar_especies(physeq_known_filt.feces)
+physeq_all_filt.feces    <- renombrar_especies(physeq_all_filt.feces)
+
 
 # REDES SPIEC-EASI
 #analsiis de redes de co-ocurrencia 
@@ -68,6 +73,7 @@ feces_known <- adj2igraph(getRefit(feces_known),
 feces_all   <- adj2igraph(getRefit(feces_all),   
                           vertex.attr = list(name = taxa_names(physeq_all_filt.feces)))
 
+#-----------------------------------------------------------------------------------------------------
 metricas <- function(g) {
   list(
     nodos = vcount(g),
@@ -78,6 +84,7 @@ metricas <- function(g) {
     modularidad = modularity(cluster_louvain(g))
   )
 }
+#----------------------------------------------------------------------------------------------------------
 
 feces.m_known <- metricas(feces_known)
 feces.m_all   <- metricas(feces_all)
@@ -124,6 +131,10 @@ physeq_saliva.com       <- physeq_spp_s  # con materia oscura
 physeq_known_filt.saliva <- prevalence_filter(physeq_saliva.sin, 0.2) #aplciar la funcion y sacar nuevos objetos
 physeq_all_filt.saliva   <- prevalence_filter(physeq_saliva.com, 0.2)
 
+# Aplicar renombramiento
+physeq_known_filt.saliva <- renombrar_especies(physeq_known_filt.saliva)
+physeq_all_filt.saliva    <- renombrar_especies(physeq_all_filt.saliva)
+
 # REDES SPIEC-EASI
 #analsiis de redes de co-ocurrencia 
 saliva_known <- spiec.easi( #NO DM
@@ -160,7 +171,6 @@ tibble(
   Sin_materia_obscura = unlist(saliva.m_known)
 )
 
-
 # VISUALIZACIÓN con materia obscura)
 plot(saliva_all,
      vertex.size = degree(saliva_all)*2,
@@ -178,3 +188,5 @@ plot(saliva_known,
      main = "Red sin Materia Obscura saliva")
 
 
+createNetworkFromIgraph(saliva_all,   title = "Red con materia obscura solo saliva")
+createNetworkFromIgraph(saliva_known, title = "Red sin materia obscura solo saliva")
