@@ -189,6 +189,8 @@ plot(saliva_known,
      edge.width = 1,
      main = "Red sin Materia Obscura saliva")
 
+library(RCy3)
+cytoscapePing()
 
 createNetworkFromIgraph(saliva_all,   title = "Red con materia obscura solo saliva")
 createNetworkFromIgraph(saliva_known, title = "Red sin materia obscura solo saliva")
