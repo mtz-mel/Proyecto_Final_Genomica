@@ -349,4 +349,61 @@ plot(g_reducido,
 createNetworkFromIgraph(g_reducido, title = "Red con 30% de taxones eliminados")
 
 
+############################
 
+
+#boxplot de las redes 
+
+library(ggplot2)
+library(tidyr)
+
+# primera creaamos  una tabla comparativa con los datos de las tres redes
+tabla_comparativa_especie <- tibble(
+  Métrica = names(metricas_todos),
+  Con_materia_obscura = unlist(metricas_todos),
+  Sin_materia_obscura = unlist(metricas_conocido),
+  Bootstrap = unlist(m_reducido)  
+)
+
+# convertir en  formato largo para ggplot
+df_metricas_especie <- tabla_comparativa_especie %>%
+  pivot_longer(cols = -Métrica, names_to = "Red", values_to = "Valor")
+
+# hacemos los boxplot
+ggplot(df_metricas_especie, aes(x = Red, y = Valor, fill = Red)) +
+  geom_boxplot() +
+  facet_wrap(~ Métrica, scales = "free") +  # para separar cada metrica en su propio box
+  theme_minimal() +
+  theme(
+    strip.text = element_text(face = "bold", size = 12),
+    axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+    axis.title = element_text(face = "bold", size = 16),
+    legend.position = "top",
+     ) +
+  labs(title = "Comparación de métricas entre redes a nivel de especie y bootstrap",
+       x = "Tipo de Red",
+       y = "Valor de Métrica") 
+
+
+#################
+
+#mejor grafica de barras 
+
+
+library(ggplot2)
+library(tidyr)
+
+
+
+# Generar la gráfica de barras
+ggplot(df_metricas_especie, aes(x = Métrica, y = Valor, fill = Red)) +
+  geom_bar(stat = "identity", position = "dodge", color = "black") +  #
+  scale_fill_manual(values = c("Con_materia_obscura" = "lightblue", 
+                               "Sin_materia_obscura" = "pink", 
+                               "Bootstrap" = "purple")) +  # colores para cada red
+  theme_minimal() +
+  coord_flip()+
+  labs(title = "Comparación de métricas entre redes",
+       x = "Métrica",
+       y = "Valor de métrica") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
