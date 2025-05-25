@@ -1,5 +1,5 @@
 **Proyecto final genomica**  
 Integrantes:  
-Adriana Melissa  
+Melissa Martínez  
 Isabel Herrera  
 Alondra Dominguez.
