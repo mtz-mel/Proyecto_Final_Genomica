@@ -196,7 +196,7 @@ plot(g_conocido,
 ```{r}
 # primera creaamos  una tabla comparativa con los datos de las tres redes
 tabla_comparativa_especie <- tibble(
-  Métrica = names(metricas_all),
+  Métrica = names(m_all),
   Con_materia_obscura = unlist(m_all),
   Sin_materia_obscura = unlist(m_known),
   Bootstrap = unlist(m_reducido)  
@@ -395,6 +395,8 @@ Red sin materia oscura heces:
 ### Objeto Saliva: Separar cada nuevo objeto con y sin material oscura.
 
 ```{r message=FALSE, warning=FALSE}
+load("DATOS/physeq_saliva.RData")
+
 physeq_spp_s <- tax_glom(physeq_saliva, taxrank = "Species", NArm = FALSE)
 
 physeq_saliva.sin     <- subset_taxa(physeq_spp_s, !is.na(Species))  # sin materia oscura
@@ -527,8 +529,398 @@ plot(saliva_known,
 
 Red con materia oscura saliva:
 
-![](images/Red con materia obscura solo saliva.png)
+![](images/Red%20con%20materia%20obscura%20solo%20saliva.png)
 
 Red sin materia oscura saliva:
 
-![](images/Red sin materia obscura solo saliva.png)
+![](images/Red%20sin%20materia%20obscura%20solo%20saliva.png)
+
+### Objeto niños: Separar cada nuevo objeto con y sin material oscura.
+
+```{r message=FALSE, warning=FALSE}
+load("DATOS/physeq_niños.RData")
+
+physeq_spp_niños <- tax_glom(physeq_niños, taxrank = "Species", NArm = FALSE)
+
+physeq_niños.sin     <- subset_taxa(physeq_spp_niños, !is.na(Species))  # sin materia oscura
+physeq_niños.com       <- physeq_spp_niños  # con materia oscura
+```
+
+### Filtrado por prevalencia:
+
+```{r}
+#
+prevalence_filter <- function(physeq_objeto, umbral = 0.1) {
+  prevalencia <- apply(otu_table(physeq_objeto), 1, function(x) mean(x > 0))
+  conservar <- names(prevalencia[prevalencia >= umbral])
+  prune_taxa(conservar, physeq_objeto)
+}
+#
+physeq_conocido_filtrado_niños <- filtrar_prevalencia(physeq_niños.sin, 0.1)
+physeq_todos_filtrado_niños    <- filtrar_prevalencia(physeq_niños.com, 0.1)
+```
+
+### Renombramiento de especies para una red con mejor visualización e idenificación de NA's:
+
+```{r message=FALSE, warning=FALSE}
+#
+renombrar_especies <- function(physeq_objeto) {
+  tax <- tax_table(physeq_objeto)
+  especies <- as.character(tax[, "Species"])
+  
+  # Reemplazar NA con "Desconocido"
+  especies_limpias <- ifelse(is.na(especies), "Desconocido", especies)
+  
+  # Asegurar unicidad en los nombres
+  nombres_unicos <- make.unique(especies_limpias)
+  
+  # Asignar los nuevos nombres como nombres de los taxones
+  taxa_names(physeq_objeto) <- nombres_unicos
+  return(physeq_objeto)
+}
+#
+
+# Renombrar los taxa en physeq_especie (aplicable a physeq_todos y physeq_conocido)
+physeq_conocido_filtrado_niños <- renombrar_especies(physeq_conocido_filtrado_niños)
+physeq_todos_filtrado_niños    <- renombrar_especies(physeq_todos_filtrado_niños)
+```
+
+### Construcción de redes con SPIEC-EASI que utiliza el método de co-ocurrencia:
+
+```{r message=FALSE, warning=FALSE}
+# CONSTRUCCIÓN DE REDES CON SPIEC-EASI
+red_conocido_niños <- spiec.easi(
+  physeq_conocido_filtrado_niños,
+  method = "mb",
+  lambda.min.ratio = 1e-1,
+  nlambda = 20,
+  sel.criterion = "bstars",
+  pulsar.params = list(thresh = 0.1)
+)
+
+red_todos_niños <- spiec.easi(
+  physeq_todos_filtrado_niños,
+  method = "mb",
+  lambda.min.ratio = 1e-1,
+  nlambda = 20,
+  sel.criterion = "bstars",
+  pulsar.params = list(thresh = 0.1)
+)
+```
+
+### Transformacion a formato igraph.
+
+```{r}
+g_conocido.niños <- adj2igraph(getRefit(red_conocido_niños), vertex.attr = list(name = taxa_names(physeq_conocido_filtrado_niños)))
+g_todos.niños    <- adj2igraph(getRefit(red_todos_niños),    vertex.attr = list(name = taxa_names(physeq_todos_filtrado_niños)))
+
+```
+
+### Cálculo de métricas de centralidad:
+
+```{r}
+metricas <- function(g) {
+  list(
+    nodos = vcount(g),
+    aristas = ecount(g),
+    grado_medio = mean(degree(g)),
+    densidad = edge_density(g),
+    clustering = transitivity(g, type = "global"),
+    modularidad = modularity(cluster_louvain(g))
+  )
+}
+#
+metricas_conocido_niños <- calcular_metricas(g_conocido.niños)
+metricas_todos_niños    <- calcular_metricas(g_todos.niños)
+```
+
+### Tabla comparativa de metricas de centralidad:
+
+```{r}
+tabla_comparativa.niños <- tibble(
+  Métrica              = names(metricas_todos_niños),
+  Con_materia_obscura  = unlist(metricas_todos_niños),
+  Sin_materia_obscura  = unlist(metricas_conocido_niños)
+)
+print(tabla_comparativa.niños)
+```
+
+### Observación de redes:
+
+```{r}
+plot(g_todos.niños,
+     vertex.size = degree(g_todos.niños)*2,
+     vertex.color = cluster_louvain(g_todos.niños)$membership,
+     vertex.label.cex = 0.7,
+     edge.width = 1,
+     main = "Red con Materia Obscura en niños")
+
+plot(g_conocido.niños,
+     vertex.size = degree(g_conocido.niños)*2,
+     vertex.color = cluster_louvain(g_conocido.niños)$membership,
+     vertex.label.cex = 0.7,
+     edge.width = 1,
+     main = "Red sin Materia Obscura en niños")
+```
+
+### Edición de las redes en Cytoscape para poder visualizarlas de mejor manera:
+
+### Objeto infantes: Separar cada nuevo objeto con y sin material oscura.
+
+```{r message=FALSE, warning=FALSE}
+load("DATOS/physeq_infantes.RData")
+physeq_spp_infantes <- tax_glom(physeq_infantes, taxrank = "Species", NArm = FALSE)
+
+physeq_infantes.sin     <- subset_taxa(physeq_spp_infantes, !is.na(Species))  # sin materia oscura
+physeq_infante.com       <- physeq_spp_infantes  # con materia oscura
+```
+
+### Filtrado por prevalencia:
+
+```{r}
+#
+prevalence_filter <- function(physeq_objeto, umbral = 0.1) {
+  prevalencia <- apply(otu_table(physeq_objeto), 1, function(x) mean(x > 0))
+  conservar <- names(prevalencia[prevalencia >= umbral])
+  prune_taxa(conservar, physeq_objeto)
+}
+#
+physeq_conocido_filtrado.infantes <- filtrar_prevalencia(physeq_infantes.sin, 0.1)
+physeq_todos_filtrado.infantes   <- filtrar_prevalencia(physeq_infante.com, 0.1)
+```
+
+### Renombramiento de especies para una red con mejor visualización e idenificación de NA's:
+
+```{r message=FALSE, warning=FALSE}
+#
+renombrar_especies <- function(physeq_objeto) {
+  tax <- tax_table(physeq_objeto)
+  especies <- as.character(tax[, "Species"])
+  
+  # Reemplazar NA con "Desconocido"
+  especies_limpias <- ifelse(is.na(especies), "Desconocido", especies)
+  
+  # Asegurar unicidad en los nombres
+  nombres_unicos <- make.unique(especies_limpias)
+  
+  # Asignar los nuevos nombres como nombres de los taxones
+  taxa_names(physeq_objeto) <- nombres_unicos
+  return(physeq_objeto)
+}
+#
+# Renombrar los taxa en physeq_especie (aplicable a physeq_todos y physeq_conocido)
+physeq_conocido_filtrado.infantes <- renombrar_especies(physeq_conocido_filtrado.infantes)
+physeq_todos_filtrado.infantes    <- renombrar_especies(physeq_todos_filtrado.infantes)
+```
+
+### Construcción de redes con SPIEC-EASI que utiliza el método de co-ocurrencia:
+
+```{r message=FALSE, warning=FALSE}
+# CONSTRUCCIÓN DE REDES CON SPIEC-EASI
+red_conocido_infantes <- spiec.easi(
+  physeq_conocido_filtrado.infantes,
+  method = "mb",
+  lambda.min.ratio = 1e-1,
+  nlambda = 20,
+  sel.criterion = "bstars",
+  pulsar.params = list(thresh = 0.1)
+)
+
+red_todos_infantes <- spiec.easi(
+  physeq_todos_filtrado.infantes,
+  method = "mb",
+  lambda.min.ratio = 1e-1,
+  nlambda = 20,
+  sel.criterion = "bstars",
+  pulsar.params = list(thresh = 0.1)
+)
+```
+
+### Transformacion a formato igraph.
+
+```{r}
+g_conocido.infantes <- adj2igraph(getRefit(red_conocido_infantes), vertex.attr = list(name = taxa_names(physeq_conocido_filtrado.infantes)))
+
+g_todos.infantes  <- adj2igraph(getRefit(red_todos_infantes),    vertex.attr = list(name = taxa_names(physeq_todos_filtrado.infantes)))
+```
+
+### Cálculo de métricas de centralidad:
+
+```{r}
+metricas <- function(g) {
+  list(
+    nodos = vcount(g),
+    aristas = ecount(g),
+    grado_medio = mean(degree(g)),
+    densidad = edge_density(g),
+    clustering = transitivity(g, type = "global"),
+    modularidad = modularity(cluster_louvain(g))
+  )
+}
+#
+metricas_conocido_infantes <- calcular_metricas(g_conocido.infantes)
+metricas_todos_infantes    <- calcular_metricas(g_todos.infantes)
+```
+
+### Tabla comparativa de metricas de centralidad:
+
+```{r message=FALSE, warning=FALSE}
+tabla_comparativa.infantes <- tibble(
+  Métrica              = names(metricas_todos_infantes),
+  Con_materia_obscura  = unlist(metricas_todos_infantes),
+  Sin_materia_obscura  = unlist(metricas_conocido_infantes)
+)
+print(tabla_comparativa.infantes)
+```
+
+### Observación de redes:
+
+```{r message=FALSE, warning=FALSE}
+plot(g_todos.infantes,
+     vertex.size = degree(g_todos.infantes)*2,
+     vertex.color = cluster_louvain(g_todos.infantes)$membership,
+     vertex.label.cex = 0.7,
+     edge.width = 1,
+     main = "Red con Materia Obscura en infantes")
+
+plot(g_conocido.infantes,
+     vertex.size = degree(g_conocido.infantes)*2,
+     vertex.color = cluster_louvain(g_conocido.infantes)$membership,
+     vertex.label.cex = 0.7,
+     edge.width = 1,
+     main = "Red sin Materia Obscura en infantes")
+```
+
+### Edición de las redes en Cytoscape para poder visualizarlas de mejor manera:
+
+### Objeto Adultos: Separar cada nuevo objeto con y sin material oscura.
+
+```{r}
+load("DATOS/physeq_adultos.RData")
+
+physeq_spp_adultos <- tax_glom(physeq_adultos, taxrank = "Species", NArm = FALSE)
+
+physeq_adultos.sin     <- subset_taxa(physeq_spp_adultos, !is.na(Species))  # sin materia oscura
+physeq_adultos.com       <- physeq_spp_adultos  # con materia oscura
+```
+
+### Filtrado por prevalencia:
+
+```{r message=FALSE, warning=FALSE}
+#
+prevalence_filter <- function(physeq_objeto, umbral = 0.1) {
+  prevalencia <- apply(otu_table(physeq_objeto), 1, function(x) mean(x > 0))
+  conservar <- names(prevalencia[prevalencia >= umbral])
+  prune_taxa(conservar, physeq_objeto)
+}
+#
+physeq_conocido_filtrado.adultos <- filtrar_prevalencia(physeq_adultos.sin, 0.1)
+physeq_todos_filtrado.adultos   <- filtrar_prevalencia(physeq_adultos.com, 0.1)
+```
+
+### Renombramiento de especies para una red con mejor visualización e idenificación de NA's:
+
+```{r message=FALSE, warning=FALSE}
+#
+renombrar_especies <- function(physeq_objeto) {
+  tax <- tax_table(physeq_objeto)
+  especies <- as.character(tax[, "Species"])
+  
+  # Reemplazar NA con "Desconocido"
+  especies_limpias <- ifelse(is.na(especies), "Desconocido", especies)
+  
+  # Asegurar unicidad en los nombres
+  nombres_unicos <- make.unique(especies_limpias)
+  
+  # Asignar los nuevos nombres como nombres de los taxones
+  taxa_names(physeq_objeto) <- nombres_unicos
+  return(physeq_objeto)
+}
+#
+# Renombrar los taxa en physeq_especie (aplicable a physeq_todos y physeq_conocido)
+physeq_conocido_filtrado.adultos <- renombrar_especies(physeq_conocido_filtrado.adultos)
+physeq_todos_filtrado.adultos    <- renombrar_especies(physeq_todos_filtrado.adultos)
+```
+
+### Construcción de redes con SPIEC-EASI que utiliza el método de co-ocurrencia:
+
+```{r}
+# CONSTRUCCIÓN DE REDES CON SPIEC-EASI
+red_conocido_adultos <- spiec.easi(
+  physeq_conocido_filtrado.adultos,
+  method = "mb",
+  lambda.min.ratio = 1e-1,
+  nlambda = 20,
+  sel.criterion = "bstars",
+  pulsar.params = list(thresh = 0.1)
+)
+
+red_todos_adultos <- spiec.easi(
+  physeq_todos_filtrado.adultos,
+  method = "mb",
+  lambda.min.ratio = 1e-1,
+  nlambda = 20,
+  sel.criterion = "bstars",
+  pulsar.params = list(thresh = 0.1)
+)
+```
+
+### Transformacion a formato igraph.
+
+```{r}
+g_conocido.adultos <- adj2igraph(getRefit(red_conocido_adultos), 
+                                  vertex.attr = list(name = taxa_names(physeq_conocido_filtrado.adultos)))
+
+g_todos.adultos  <- adj2igraph(getRefit(red_todos_adultos),    
+                               vertex.attr = list(name = taxa_names(physeq_todos_filtrado.adultos)))
+```
+
+### Cálculo de métricas de centralidad:
+
+```{r message=FALSE, warning=FALSE}
+metricas <- function(g) {
+  list(
+    nodos = vcount(g),
+    aristas = ecount(g),
+    grado_medio = mean(degree(g)),
+    densidad = edge_density(g),
+    clustering = transitivity(g, type = "global"),
+    modularidad = modularity(cluster_louvain(g))
+  )
+}
+#
+metricas_conocido_adultos <- calcular_metricas(g_conocido.adultos)
+metricas_todos_adultos    <- calcular_metricas(g_todos.adultos)
+```
+
+### Tabla comparativa de metricas de centralidad:
+
+```{r message=FALSE, warning=FALSE}
+tabla_comparativa.adultos <- tibble(
+  Métrica              = names(metricas_todos_adultos),
+  Con_materia_obscura  = unlist(metricas_todos_adultos),
+  Sin_materia_obscura  = unlist(metricas_conocido_adultos)
+)
+print(tabla_comparativa.adultos)
+```
+
+### Observación de redes:
+
+```{r}
+plot(g_todos.adultos,
+     vertex.size = degree(g_todos.adultos)*2,
+     vertex.color = cluster_louvain(g_todos.adultos)$membership,
+     vertex.label.cex = 0.7,
+     edge.width = 1,
+     main = "Red con Materia Obscura en adultos")
+
+plot(g_conocido.adultos,
+     vertex.size = degree(g_conocido.adultos)*2,
+     vertex.color = cluster_louvain(g_conocido.adultos)$membership,
+     vertex.label.cex = 0.7,
+     edge.width = 1,
+     main = "Red sin Materia Obscura en infantes")
+
+```
+
+### Edición de las redes en Cytoscape para poder visualizarlas de mejor manera:
