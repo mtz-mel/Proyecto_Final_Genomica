@@ -180,3 +180,74 @@ physeq_spp_adultos <- tax_glom(physeq_adultos, taxrank = "Species", NArm = FALSE
 physeq_adultos.sin     <- subset_taxa(physeq_spp_adultos, !is.na(Species))  # sin materia oscura
 physeq_adultos.com       <- physeq_spp_adultos  # con materia oscura
 
+physeq_conocido_filtrado.adultos <- filtrar_prevalencia(physeq_adultos.sin, 0.1)
+physeq_todos_filtrado.adultos   <- filtrar_prevalencia(physeq_adultos.com, 0.1)
+
+# Renombrar los taxa en physeq_especie (aplicable a physeq_todos y physeq_conocido)
+physeq_conocido_filtrado.adultos <- renombrar_especies(physeq_conocido_filtrado.adultos)
+physeq_todos_filtrado.adultos    <- renombrar_especies(physeq_todos_filtrado.adultos)
+
+# CONSTRUCCIÓN DE REDES CON SPIEC-EASI
+red_conocido_adultos <- spiec.easi(
+  physeq_conocido_filtrado.adultos,
+  method = "mb",
+  lambda.min.ratio = 1e-1,
+  nlambda = 20,
+  sel.criterion = "bstars",
+  pulsar.params = list(thresh = 0.1)
+)
+
+red_todos_adultos <- spiec.easi(
+  physeq_todos_filtrado.adultos,
+  method = "mb",
+  lambda.min.ratio = 1e-1,
+  nlambda = 20,
+  sel.criterion = "bstars",
+  pulsar.params = list(thresh = 0.1)
+)
+g_conocido.adultos <- adj2igraph(getRefit(red_conocido_adultos), 
+                                  vertex.attr = list(name = taxa_names(physeq_conocido_filtrado.adultos)))
+
+g_todos.adultos  <- adj2igraph(getRefit(red_todos_adultos),    
+                               vertex.attr = list(name = taxa_names(physeq_todos_filtrado.adultos)))
+
+metricas_conocido_adultos <- calcular_metricas(g_conocido.adultos)
+metricas_todos_adultos    <- calcular_metricas(g_todos.adultos)
+
+tabla_comparativa.adultos <- tibble(
+  Métrica              = names(metricas_todos_adultos),
+  Con_materia_obscura  = unlist(metricas_todos_adultos),
+  Sin_materia_obscura  = unlist(metricas_conocido_adultos)
+)
+print(tabla_comparativa.adultos)
+
+plot(g_todos.adultos,
+     vertex.size = degree(g_todos.adultos)*2,
+     vertex.color = cluster_louvain(g_todos.adultos)$membership,
+     vertex.label.cex = 0.7,
+     edge.width = 1,
+     main = "Red con Materia Obscura en adultos")
+
+plot(g_conocido.adultos,
+     vertex.size = degree(g_conocido.adultos)*2,
+     vertex.color = cluster_louvain(g_conocido.adultos)$membership,
+     vertex.label.cex = 0.7,
+     edge.width = 1,
+     main = "Red sin Materia Obscura en infantes")
+
+
+# GRAFICAR COMPARACIÓN DE MÉTRICAS CON ggplot2
+library(ggplot2)
+library(tidyr)
+
+df_metricas.adultos <- tabla_comparativa.adultos %>%
+  pivot_longer(cols = -Métrica, names_to = "Red", values_to = "Valor")
+
+ggplot(df_metricas.adultos, aes(x = Métrica, y = Valor, fill = Red)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  theme_minimal() +
+  labs(title = "Comparación de métricas de las redes",
+       x = "Métrica",
+       y = "Valor",
+       fill = "Tipo de red") +
+  coord_flip()
