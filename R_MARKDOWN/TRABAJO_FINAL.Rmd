@@ -1,0 +1,185 @@
+---
+title: "Redes de co-ocurrencia, con y sin materia obscura"
+author: "Alondra Dominguez, Isabel Herrera, Melissa Martínez "
+date: "2025-05-25"
+output: 
+  html_document:
+    theme: united
+    toc: yes
+    toc_float:
+      collapsed: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introducción 
+El termino hace referencia a todas las especies microbianas que no han sido caracterizadas.Impiden la caracterización de ecosistemas dominados por estos microorganismos, debido a la falta de entendimiento de sus funciones. 
+
+## Redes tomando en cuenta los datos de todas las muestras.
+### Librerías utilizadas:
+
+```{r message=FALSE, warning=FALSE}
+library(igraph)
+library(igraphdata)
+library(networkD3)
+library(RCy3)
+library(tidyverse)  
+library(microbiomeDataSets)
+library(mia)
+library(phyloseq)
+library(SpiecEasi)
+```
+
+### Datos a utilizar de "library(microbiomeDataSets)":
+
+```{r message=FALSE, warning=FALSE}
+datos_sprockett <- SprockettTHData()
+
+ncol(datos_sprockett)
+
+```
+
+
+### Proceso para construir el objeto phyloseq:
+
+```{r message=FALSE, warning=FALSE}
+matriz_otu <- assays(datos_sprockett)$counts %>% as.matrix()
+matriz_tax <- rowData(datos_sprockett) %>% as.data.frame() %>% as.matrix()
+datos_muestras <- colData(datos_sprockett) %>% as.data.frame()
+
+OTU <- otu_table(matriz_otu, taxa_are_rows = TRUE)
+TAX <- tax_table(matriz_tax)
+MUESTRAS <- sample_data(datos_muestras)
+physeq <- phyloseq(OTU, TAX, MUESTRAS)
+```
+
+### Separacion de objetos con y sin materia obscura:
+
+```{r message=FALSE, warning=FALSE}
+physeq_especie <- tax_glom(physeq, taxrank = "Species", NArm = FALSE)
+
+physeq_conocido <- subset_taxa(physeq_especie, !is.na(Species))  # sin materia obscura
+physeq_todos <- physeq_especie  # con materia obscura
+
+```
+
+### Filtrado por prevalencia (en este caso tomamos un filtrado del 10%, para obtener una red más densa):
+
+```{r message=FALSE, warning=FALSE}
+filtrar_prevalencia <- function(physeq_objeto, umbral = 0.1) {
+  prevalencia <- apply(otu_table(physeq_objeto), 1, function(x) mean(x > 0))
+  conservar <- names(prevalencia[prevalencia >= umbral])
+  prune_taxa(conservar, physeq_objeto)
+}
+
+physeq_conocido_filtrado <- filtrar_prevalencia(physeq_conocido, 0.1)
+physeq_todos_filtrado    <- filtrar_prevalencia(physeq_todos, 0.1)
+
+```
+
+### Renombramiento de especies para una red con mejor visualización e idenificación de NA's:
+
+```{r message=FALSE, warning=FALSE}
+renombrar_especies <- function(physeq_objeto) {
+  tax <- tax_table(physeq_objeto)
+  especies <- as.character(tax[, "Species"])
+  
+  especies_limpias <- ifelse(is.na(especies), "Desconocido", especies)
+  
+  nombres_unicos <- make.unique(especies_limpias)
+  
+  taxa_names(physeq_objeto) <- nombres_unicos
+  return(physeq_objeto)
+}
+
+physeq_conocido_filtrado <- renombrar_especies(physeq_conocido_filtrado)
+physeq_todos_filtrado    <- renombrar_especies(physeq_todos_filtrado)
+```
+
+### Construcción de redes con SPIEC-EASI que utiliza el método de co-ocurrencia:
+
+```{r message=FALSE, warning=FALSE}
+red_conocido <- spiec.easi(
+  physeq_conocido_filtrado,
+  method = "mb",
+  lambda.min.ratio = 1e-1,
+  nlambda = 20,
+  sel.criterion = "bstars",
+  pulsar.params = list(thresh = 0.1)
+)
+
+red_todos <- spiec.easi(
+  physeq_todos_filtrado,
+  method = "mb",
+  lambda.min.ratio = 1e-1,
+  nlambda = 20,
+  sel.criterion = "bstars",
+  pulsar.params = list(thresh = 0.1)
+)
+```
+
+### Transfromación a formato Igraph:
+
+```{r message=FALSE, warning=FALSE}
+g_conocido <- adj2igraph(getRefit(red_conocido), vertex.attr = list(name = taxa_names(physeq_conocido_filtrado)))
+g_todos    <- adj2igraph(getRefit(red_todos),    vertex.attr = list(name = taxa_names(physeq_todos_filtrado)))
+
+```
+
+### Cálculo de métricas de centralidad:
+
+```{r message=FALSE, warning=FALSE}
+calcular_metricas <- function(grafo) {
+  list(
+    nodos = vcount(grafo),
+    aristas = ecount(grafo),
+    grado_medio = mean(degree(grafo)),
+    densidad = edge_density(grafo),
+    clustering = transitivity(grafo, type = "global"),
+    modularidad = modularity(cluster_louvain(grafo)),
+    betweenness_media = mean(betweenness(grafo))
+  )
+}
+
+metricas_conocido <- calcular_metricas(g_conocido)
+metricas_todos    <- calcular_metricas(g_todos)
+```
+
+### Tabla comparativa de metricas de centralidad:
+
+```{r warning=FALSE}
+tabla_comparativa <- tibble(
+  Métrica              = names(metricas_todos),
+  Con_materia_obscura  = unlist(metricas_todos),
+  Sin_materia_obscura  = unlist(metricas_conocido)
+)
+print(tabla_comparativa)
+```
+
+### Observación de redes:
+
+```{r warning=FALSE}
+plot(g_todos,
+     vertex.size = degree(g_todos)*2,
+     vertex.color = cluster_louvain(g_todos)$membership,
+     vertex.label.cex = 0.7,
+     edge.width = 1,
+     main = "Red con Materia Obscura")
+
+plot(g_conocido,
+     vertex.size = degree(g_conocido)*2,
+     vertex.color = cluster_louvain(g_conocido)$membership,
+     vertex.label.cex = 0.7,
+     edge.width = 1,
+     main = "Red sin Materia Obscura")
+
+```
+
+### Edición de las redes en Cytoscape para poder visualizarlas de mejor manera:
+
+![Red con materia obscura](../REDES/CON_MATERIA_OBSCURA.png)
+
+
+![Red sin materia obscura](../REDES/SIN_MATERIA_OBSCURA.png)
