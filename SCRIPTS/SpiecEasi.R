@@ -170,7 +170,6 @@ metricas <- function(g) {
     densidad = edge_density(g),  # Densidad de la red
     clustering = transitivity(g, type = "global"),  # coeficiente de clustering global
     modularidad = modularity(cluster_louvain(g)),  # Modularidad
-    closeness_media = mean(closeness(g)),  # Promedio de closeness
     betweenness_media = mean(betweenness(g))  # Promedio de betweenness
   )
 }
@@ -243,25 +242,88 @@ ggplot(df_metricas, aes(x = Métrica, y = Valor, fill = Red)) +
 
 #################
 
-#######checar mañana
-set.seed(123)  # Para que siempre sean los mismos numeros
+#analisis
+#creamos listas para las metricas de cada red 
 
-# definir porcentaje de exclusión
-porcentaje_exclusion <- 0.4  # excluir 30% aleatorio de taxones que SI  estan identificados
+metricas_known <- unlist (m_known)
 
-# Obtener taxones identificados
-taxones_identificados <- taxa_names(subset_taxa(physeq_all, !is.na(Species)))
+metricas_all <- unlist (m_all)
 
-# seleccionar aleatoriamente los taxones para excluir
-taxones_excluidos <- sample(taxones_identificados, size = round(length(taxones_identificados) * porcentaje_exclusion))
+#hacemos la prueba de wilcoxon para ver si es significativo el cambio 
 
-# crear nuevo objeto phyloseq  ya sin los taxones seleccionados
-physeq_bootstrap <- prune_taxa(setdiff(taxa_names(physeq_all), taxones_excluidos), physeq_all)
+wilcoxon_com<- mapply (function (x,y) wilcox.test (x, y, paired =TRUE ), metricas_known, metricas_all, SIMPLIFY = FALSE)
+
+#vemos los valores de P
+
+P_values<- sapply( wilcoxon_com, function (x) x$p.value)
+
+#ahora mostramos los resultados nen forma de tabla 
+
+tibble( metrica= names(m_all), P_value = P_values) %>% arrange(P_value)
 
 
 
-se_bootstrap <- spiec.easi(
-  physeq_bootstrap,
+
+# 
+
+hist(metricas_known, main = "Métricas sin materia oscura")
+hist(metricas_all, main = "Métricas con materia oscura")
+
+################
+
+# analisis tstudent
+library(stats)
+
+# Clistas con las metricas
+metricas_known <- unlist(m_known)
+metricas_all   <- unlist(m_all)
+
+length(metricas_known)
+length(metricas_all)
+
+
+var(metricas_known)
+var(metricas_all)
+
+# Aplicar prueba t de Student considerando varianzas diferentes
+t_test_resultado <- t.test(metricas_known, metricas_all, paired = TRUE, var.equal = FALSE)
+
+# Mostrar resultados
+tibble(
+  Métrica = names(m_all),
+  P_value = t_test_resultado$p.value
+) %>% arrange(P_value)
+###########
+
+
+
+###################
+
+#redes con boostrap
+
+# creamos una función para eliminar un porcentaje aleatorio de taxones
+eliminar_taxones_azar <- function(physeq, porcentaje = 0.3) {
+  # extraemos los nombres de taxones
+  taxones <- taxa_names(physeq)
+  
+  # Seleccionar 30% de taxones al azar #es un valor arbitrario no se cual ponerle sjsj
+  eliminar <- sample(taxones, size = round(length(taxones) * porcentaje))
+  
+  # filtrar el phyloseq sin esos taxones
+  prune_taxa(setdiff(taxones, eliminar), physeq)
+}
+
+
+#una vez echa la funcion la aplicamos para eliminar 30% de taxones
+
+physeq_reducido <- eliminar_taxones_azar(physeq_all)
+
+# filtrado de prevalencia en la nueva red
+physeq_reducido_filt <- prevalence_filter(physeq_reducido, 0.1)
+
+# hacemos la red con el mismo SPIEC-EASI pero con el phyloseq reducido
+se_reducido <- spiec.easi(
+  physeq_reducido_filt,
   method = "mb",
   lambda.min.ratio = 1e-1,
   nlambda = 20,
@@ -269,21 +331,22 @@ se_bootstrap <- spiec.easi(
   pulsar.params = list(thresh = 0.1)
 )
 
-g_bootstrap <- adj2igraph(getRefit(se_bootstrap), vertex.attr = list(name = taxa_names(physeq_bootstrap)))
+# convertimos a objeto igraph
+g_reducido <- adj2igraph(getRefit(se_reducido), vertex.attr = list(name = taxa_names(physeq_reducido_filt)))
 
+# se alcular métricas de la nueva red
+m_reducido <- metricas(g_reducido)
 
-E(g_bootstrap)$weight <- E(g_bootstrap)$weight  # Extraer pesos de SpiecEasi
-g_bootstrap_filtered <- delete_edges(g_bootstrap, E(g_bootstrap)[weight < 0.2])
-
-
-
-plot(g_bootstrap_filtered,
-     vertex.size = degree(g_bootstrap_filtered)*2,
-     vertex.color = cluster_louvain(g_bootstrap_filtered)$membership,
+# Visualización de la red reducida
+plot(g_reducido,
+     vertex.size = degree(g_reducido)*2,
+     vertex.color = cluster_louvain(g_reducido)$membership,
      vertex.label.cex = 0.7,
      edge.width = 1,
-     main = "Red con Bootstrap (Taxones Excluidos Aleatoriamente)")
+     main = "Red con 30% de taxones eliminados")
 
-createNetworkFromIgraph(g_bootstrap, title = "Red Bootstrap SPIEC-EASI")
+# Crear red en Cytoscape pa verla más bonita 
+createNetworkFromIgraph(g_reducido, title = "Red con 30% de taxones eliminados")
+
 
 

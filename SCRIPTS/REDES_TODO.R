@@ -100,7 +100,6 @@ calcular_metricas <- function(grafo) {
     densidad = edge_density(grafo),
     clustering = transitivity(grafo, type = "global"),
     modularidad = modularity(cluster_louvain(grafo)),
-    closeness_media = mean(closeness(grafo)),
     betweenness_media = mean(betweenness(grafo))
   )
 }
@@ -150,3 +149,93 @@ ggplot(df_metricas, aes(x = Métrica, y = Valor, fill = Red)) +
        y = "Valor",
        fill = "Tipo de red") +
   coord_flip()
+
+
+
+#####################
+
+#redes con boostrap
+
+# creamos una función para eliminar un porcentaje aleatorio de taxones
+eliminar_taxones_azar <- function(physeq, porcentaje = 0.3) {
+  # extraemos los nombres de taxones
+  taxones <- taxa_names(physeq)
+  
+  # Seleccionar 30% de taxones al azar #es un valor arbitrario no se cual ponerle sjsj
+  eliminar <- sample(taxones, size = round(length(taxones) * porcentaje))
+  
+  # filtrar el phyloseq sin esos taxones
+  prune_taxa(setdiff(taxones, eliminar), physeq)
+}
+
+
+#una vez echa la funcion la aplicamos para eliminar 30% de taxones
+
+physeq_reducido <- eliminar_taxones_azar(physeq_conocido)
+
+# filtrado de prevalencia en la nueva red
+physeq_reducido_filt <- prevalence_filter(physeq_reducido, 0.1)
+
+# hacemos la red con el mismo SPIEC-EASI pero con el phyloseq reducido
+se_reducido <- spiec.easi(
+  physeq_reducido_filt,
+  method = "mb",
+  lambda.min.ratio = 1e-1,
+  nlambda = 20,
+  sel.criterion = "bstars",
+  pulsar.params = list(thresh = 0.1)
+)
+
+# convertimos a objeto igraph
+g_reducido <- adj2igraph(getRefit(se_reducido), vertex.attr = list(name = taxa_names(physeq_reducido_filt)))
+
+# se alcular métricas de la nueva red
+m_reducido <- metricas(g_reducido)
+
+# Visualización de la red reducida
+plot(g_reducido,
+     vertex.size = degree(g_reducido)*2,
+     vertex.color = cluster_louvain(g_reducido)$membership,
+     vertex.label.cex = 0.7,
+     edge.width = 1,
+     main = "Red con 30% de taxones eliminados")
+
+# Crear red en Cytoscape pa verla más bonita 
+createNetworkFromIgraph(g_reducido, title = "Red con 30% de taxones eliminados")
+
+#############################
+
+#analisis ya con los 0.1 de filtrado 
+
+
+wilcoxon_com <- mapply(function(x, y) wilcox.test(x, y, paired = TRUE), 
+                       metricas_conocido, metricas_todos, SIMPLIFY = FALSE)
+
+# Extraer valores p
+P_values_wilcoxon <- sapply(wilcoxon_com, function(x) x$p.value)
+
+# Mostrar resultados
+tibble(
+  Métrica = names(metricas_todos),
+  P_value_Wilcoxon = P_values_wilcoxon
+) %>% arrange(P_value_Wilcoxon)
+
+
+#  prueba t de Student 
+
+str(metricas_conocido)
+str(metricas_todos)
+
+
+t_test_resultado <- t.test(unlist(metricas_conocido), unlist(metricas_todos), paired = TRUE)
+
+# Mostrar resultados
+tibble(
+  Métrica = names(metricas_todos),
+  P_value_t_Test = t_test_resultado$p.value
+) %>% arrange(P_value_t_Test)
+
+#########
+
+
+#############
