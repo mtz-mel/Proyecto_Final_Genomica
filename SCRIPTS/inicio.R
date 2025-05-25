@@ -42,8 +42,8 @@ View(OTU)
 TAX <- tax_table(tax) #
 SAMPLES <- sample_data(sample_data)  #OBJETO PHYLOSEQ.
 
+class(OTU)
 class(SAMPLES)
-
 
 physeq <- phyloseq(OTU, TAX, SAMPLES)  #objeto phyloseq experiment-level object
 #combinacion de todos.
@@ -79,9 +79,8 @@ otu_sumas <- otu %>%
 View(otu_sumas) #nivel de Familia
 
 
+View(otuphyseq)
 ################################################################################
-
-#Aestos despues los podemos separar por mas, pero para no mezclar el tipo de muestra primero :)
 #Base de datos con las muestras de heces:
 metadatos <- sample_data(physeq) %>% as ("data.frame") %>%  rownames_to_column("sample_id")
 # Sacar los id y separar:
@@ -92,6 +91,7 @@ heces_muestra <- metadatos %>%
 heces_abunancia<-otu_table(physeq)[,heces_muestra]
 
 class(heces_abunancia) #es un phyloseq
+View(heces_abunancia)
 
 
 #Base de datos con las muestras de saliva:
@@ -102,6 +102,9 @@ saliva_muestras <- metadatos %>%
 #Abundancias de cada uno:
 saliva_abunancia<-otu_table(physeq)[,saliva_muestras]
 class(saliva_abunancia) #es un phyloseq
-##########################
 
+#---------------------------------------------------------------------------------------------
+physeq_feces <- subset_samples(physeq, Sample_Type == "Feces") #objeto con los datos filtrados.
 
+hyseq_saliva <- subset_samples(physeq, Sample_Type == "Saliva") #objeto con los datos filtrados
+#-----------------------------------------------------------------------------------------------
