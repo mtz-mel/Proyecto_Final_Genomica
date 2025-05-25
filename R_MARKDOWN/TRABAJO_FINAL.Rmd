@@ -924,3 +924,11 @@ plot(g_conocido.adultos,
 ```
 
 ### Edición de las redes en Cytoscape para poder visualizarlas de mejor manera:
+
+Con materia oscura en adultos (heces y saliva):
+
+![](images/Red con materia obscura adultos.png)
+
+Sin materia oscura adultos (saliva y heces):
+
+![](images/Red sin materia obscura adultos.png)

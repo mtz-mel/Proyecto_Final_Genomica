@@ -236,6 +236,13 @@ plot(g_conocido.adultos,
      main = "Red sin Materia Obscura en infantes")
 
 
+#PARA CARGARLAR EN CYTOSCAPE
+library(RCy3)
+cytoscapePing()
+
+createNetworkFromIgraph(g_todos.adultos,   title = "Red con materia obscura adultos")
+createNetworkFromIgraph(g_conocido.adultos, title = "Red sin materia obscura adultos")
+
 # GRAFICAR COMPARACIÓN DE MÉTRICAS CON ggplot2
 library(ggplot2)
 library(tidyr)
