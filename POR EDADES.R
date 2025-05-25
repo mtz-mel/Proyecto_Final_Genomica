@@ -69,14 +69,14 @@ plot(g_todos.niños,
      vertex.color = cluster_louvain(g_todos.niños)$membership,
      vertex.label.cex = 0.7,
      edge.width = 1,
-     main = "Red con Materia Obscura")
+     main = "Red con Materia Obscura en niños")
 
 plot(g_conocido.niños,
      vertex.size = degree(g_conocido.niños)*2,
      vertex.color = cluster_louvain(g_conocido.niños)$membership,
      vertex.label.cex = 0.7,
      edge.width = 1,
-     main = "Red sin Materia Obscura")
+     main = "Red sin Materia Obscura en niños")
 
 
 # GRAFICAR COMPARACIÓN DE MÉTRICAS CON ggplot2
@@ -97,3 +97,78 @@ ggplot(df_metricas.niños, aes(x = Métrica, y = Valor, fill = Red)) +
 
 #--------------------------------------------------------------------------------------------------
 #INFANTES:
+physeq_spp_infantes <- tax_glom(physeq_niños, taxrank = "Species", NArm = FALSE)
+
+physeq_infantes.sin     <- subset_taxa(physeq_spp_infantes, !is.na(Species))  # sin materia oscura
+physeq_infante.com       <- physeq_spp_infantes  # con materia oscura
+
+
+physeq_conocido_filtrado.infantes <- filtrar_prevalencia(physeq_infantes.sin, 0.1)
+physeq_todos_filtrado.infantes   <- filtrar_prevalencia(physeq_infante.com, 0.1)
+
+# Renombrar los taxa en physeq_especie (aplicable a physeq_todos y physeq_conocido)
+physeq_conocido_filtrado.infantes <- renombrar_especies(physeq_conocido_filtrado.infantes)
+physeq_todos_filtrado.infantes    <- renombrar_especies(physeq_todos_filtrado.infantes)
+
+# CONSTRUCCIÓN DE REDES CON SPIEC-EASI
+red_conocido_infantes <- spiec.easi(
+  physeq_conocido_filtrado.infantes,
+  method = "mb",
+  lambda.min.ratio = 1e-1,
+  nlambda = 20,
+  sel.criterion = "bstars",
+  pulsar.params = list(thresh = 0.1)
+)
+
+red_todos_infantes <- spiec.easi(
+  physeq_todos_filtrado.infantes,
+  method = "mb",
+  lambda.min.ratio = 1e-1,
+  nlambda = 20,
+  sel.criterion = "bstars",
+  pulsar.params = list(thresh = 0.1)
+)
+
+g_conocido.infantes <- adj2igraph(getRefit(red_conocido_infantes), vertex.attr = list(name = taxa_names(physeq_conocido_filtrado.infantes)))
+g_todos.infantes  <- adj2igraph(getRefit(red_todos_infantes),    vertex.attr = list(name = taxa_names(physeq_todos_filtrado.infantes)))
+
+metricas_conocido_infantes <- calcular_metricas(g_conocido.infantes)
+metricas_todos_infantes    <- calcular_metricas(g_todos.infantes)
+
+tabla_comparativa.infantes <- tibble(
+  Métrica              = names(metricas_todos_infantes),
+  Con_materia_obscura  = unlist(metricas_todos_infantes),
+  Sin_materia_obscura  = unlist(metricas_conocido_infantes)
+)
+print(tabla_comparativa.infantes)
+
+plot(g_todos.infantes,
+     vertex.size = degree(g_todos.infantes)*2,
+     vertex.color = cluster_louvain(g_todos.infantes)$membership,
+     vertex.label.cex = 0.7,
+     edge.width = 1,
+     main = "Red con Materia Obscura en infantes")
+
+plot(g_conocido.infantes,
+     vertex.size = degree(g_conocido.infantes)*2,
+     vertex.color = cluster_louvain(g_conocido.infantes)$membership,
+     vertex.label.cex = 0.7,
+     edge.width = 1,
+     main = "Red sin Materia Obscura en infantes")
+
+
+# GRAFICAR COMPARACIÓN DE MÉTRICAS CON ggplot2
+library(ggplot2)
+library(tidyr)
+
+df_metricas.infantes <- tabla_comparativa.infantes %>%
+  pivot_longer(cols = -Métrica, names_to = "Red", values_to = "Valor")
+
+ggplot(df_metricas.infantes, aes(x = Métrica, y = Valor, fill = Red)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  theme_minimal() +
+  labs(title = "Comparación de métricas de las redes",
+       x = "Métrica",
+       y = "Valor",
+       fill = "Tipo de red") +
+  coord_flip()
