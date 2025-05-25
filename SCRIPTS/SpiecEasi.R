@@ -164,14 +164,17 @@ g_all   <- adj2igraph(getRefit(se_all),   vertex.attr = list(name = taxa_names(p
 
 metricas <- function(g) {
   list(
-    nodos = vcount(g),
-    aristas = ecount(g),
-    grado_medio = mean(degree(g)),
-    densidad = edge_density(g),
-    clustering = transitivity(g, type = "global"),
-    modularidad = modularity(cluster_louvain(g))
+    nodos = vcount(g),  # cuantos nodos
+    aristas = ecount(g),  # Número de aristas
+    grado_medio = mean(degree(g)),  # degree
+    densidad = edge_density(g),  # Densidad de la red
+    clustering = transitivity(g, type = "global"),  # coeficiente de clustering global
+    modularidad = modularity(cluster_louvain(g)),  # Modularidad
+    closeness_media = mean(closeness(g)),  # Promedio de closeness
+    betweenness_media = mean(betweenness(g))  # Promedio de betweenness
   )
 }
+
 
 m_known <- metricas(g_known)
 m_all   <- metricas(g_all)
@@ -235,5 +238,52 @@ ggplot(df_metricas, aes(x = Métrica, y = Valor, fill = Red)) +
   coord_flip() 
 
 
+
+
+
+#################
+
+#######checar mañana
+set.seed(123)  # Para que siempre sean los mismos numeros
+
+# definir porcentaje de exclusión
+porcentaje_exclusion <- 0.4  # excluir 30% aleatorio de taxones que SI  estan identificados
+
+# Obtener taxones identificados
+taxones_identificados <- taxa_names(subset_taxa(physeq_all, !is.na(Species)))
+
+# seleccionar aleatoriamente los taxones para excluir
+taxones_excluidos <- sample(taxones_identificados, size = round(length(taxones_identificados) * porcentaje_exclusion))
+
+# crear nuevo objeto phyloseq  ya sin los taxones seleccionados
+physeq_bootstrap <- prune_taxa(setdiff(taxa_names(physeq_all), taxones_excluidos), physeq_all)
+
+
+
+se_bootstrap <- spiec.easi(
+  physeq_bootstrap,
+  method = "mb",
+  lambda.min.ratio = 1e-1,
+  nlambda = 20,
+  sel.criterion = "bstars",
+  pulsar.params = list(thresh = 0.1)
+)
+
+g_bootstrap <- adj2igraph(getRefit(se_bootstrap), vertex.attr = list(name = taxa_names(physeq_bootstrap)))
+
+
+E(g_bootstrap)$weight <- E(g_bootstrap)$weight  # Extraer pesos de SpiecEasi
+g_bootstrap_filtered <- delete_edges(g_bootstrap, E(g_bootstrap)[weight < 0.2])
+
+
+
+plot(g_bootstrap_filtered,
+     vertex.size = degree(g_bootstrap_filtered)*2,
+     vertex.color = cluster_louvain(g_bootstrap_filtered)$membership,
+     vertex.label.cex = 0.7,
+     edge.width = 1,
+     main = "Red con Bootstrap (Taxones Excluidos Aleatoriamente)")
+
+createNetworkFromIgraph(g_bootstrap, title = "Red Bootstrap SPIEC-EASI")
 
 
