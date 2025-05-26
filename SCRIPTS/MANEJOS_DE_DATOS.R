@@ -60,7 +60,7 @@ names(tax)
 View(tax)
 
 #Guardar el objeto para usarlo en otros script y no andar cargando.
-save(physeq, file = "DATOS/physeq_data.RData")
+save(physeq, file = "DATOS/physeq.RData")
  #load("DATOS/physeq_data.RData") #se mantiene el nombre de physeq.
  #class(physeq)
 ################################################################################
