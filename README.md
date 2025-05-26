@@ -1,6 +1,6 @@
-##**Proyecto Final Genómica Funcional: Materia oscura bacteriana y su impacto en la arquitectura de redes ecológicas.**   
+# **Proyecto Final Genómica Funcional: Materia oscura bacteriana y su impacto en la arquitectura de redes ecológicas.**   
 
-###**Integrantes:**    
+**Integrantes:**    
 Melissa Martínez.  
 Isabel Herrera.  
 Alondra Dominguez.  
