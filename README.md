@@ -24,5 +24,6 @@ La **materia oscura microbiana** consiste en aquellos taxones que no han podido 
 - Cytoscape 3.10.3    
 
 **Referencias:**   
-- Sprockett, D.D., Martin, M., Costello, E.K. et al. (2020) Microbiota assembly, structure, and dy-namics among Tsimane horticulturalists of the Bolivian Amazon. Nat Commun 11, 3772 https: //doi.org/10.1038/s41467-020-17541-6   
+- Sprockett, D.D., Martin, M., Costello, E.K. et al. (2020) Microbiota assembly, structure, and dy-namics among Tsimane horticulturalists of the Bolivian Amazon. Nat Commun 11, 3772 https: //doi.org/10.1038/s41467-020-17541-6  
+  
 - Zamkovaya, T., Foster, J. S., De Crécy-Lagard, V., & Conesa, A. (2020). A network approach to elucidate and prioritize microbial dark matter in microbial communities. The ISME Journal, 15(1), 228–244. https://doi.org/10.1038/s41396-020-00777-x
