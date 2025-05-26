@@ -16,7 +16,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Introducción
 
-El termino hace referencia a todas las especies microbianas que no han sido caracterizadas.Impiden la caracterización de ecosistemas dominados por estos microorganismos, debido a la falta de entendimiento de sus funciones.
+El termino materia obscura hace referencia a todas las especies microbianas que no han sido caracterizadas. Estas especies impiden la caracterización de ecosistemas dominados por estos microorganismos, debido a la falta de entendimiento de sus funciones.
 
 ## Redes tomando en cuenta los datos de todas las muestras.
 
@@ -188,7 +188,7 @@ plot(g_conocido,
 
 ![Red sin materia obscura](../REDES/SIN_MATERIA_OBSCURA.png)
 
-**Red sin taxones aleatorios**
+## Red sin taxones obtenidos aleatoriamente
 
 ```{r}
 SprockettTHData()->dataspo
@@ -264,10 +264,6 @@ metricas <- function(g) {
 m_reducido <- metricas(g_reducido)
 ```
 
-**Edición de la red**
-
-## Redes con objetos filtrados.
-
 ### Edición de la red en Cytoscape para poder visualizarla de mejor manera:
 
 ![](images/Red%20con%20taxones%20eliminados.jpeg)
@@ -309,7 +305,7 @@ ggplot(df_metricas_especie, aes(x = Métrica, y = Valor, fill = Red)) +
 
 ```
 
-## Gráficas con y sin materia obscura tomando en cuenta únicamente las muestras de heces
+## Redes con y sin materia obscura tomando en cuenta únicamente las muestras de heces
 
 ### Filtrado de los datos.
 
@@ -467,7 +463,9 @@ Red con materia oscura heces:
 Red sin materia oscura heces:
 
 ![](images/Red%20sin%20materia%20obscura%20solo%20heces.png)  
-Gráficas con y sin materia obscura tomando en cuenta únicamente las muestras de saliva
+
+
+## Redes con y sin materia obscura tomando en cuenta únicamente las muestras de saliva
 
 ### Objeto Saliva: Separar cada nuevo objeto con y sin material oscura.
 
@@ -611,6 +609,7 @@ Red con materia oscura saliva:
 Red sin materia oscura saliva:
 
 ![](images/Red%20sin%20materia%20obscura%20solo%20saliva.png)
+## Redes con y sin materia obscura tomando en cuenta únicamente las muestras de niños
 
 ### Objeto niños: Separar cada nuevo objeto con y sin material oscura.
 
@@ -748,7 +747,10 @@ Con materia oscura en niños (heces y saliva):
 
 Sin materia oscura en niños (heces y saliva):
 
-![](images/Red%20sin%20materia%20oscura%20en%20niños.png)
+![](images/Red%20sin%20materia%20oscura%20en%20niños.png)  
+
+
+## Redes con y sin materia obscura tomando en cuenta únicamente las muestras de infantes
 
 ### Objeto infantes: Separar cada nuevo objeto con y sin material oscura.
 
@@ -885,7 +887,9 @@ Con materia oscura en infantes (heces y saliva):
 
 Sin materia oscura infantes (saliva y heces):
 
-![](images/Red%20sin%20materia%20oscura%20en%20infantes.png)
+![](images/Red%20sin%20materia%20oscura%20en%20infantes.png)  
+
+## Redes con y sin materia obscura tomando en cuenta únicamente las muestras de adultos
 
 ### Objeto Adultos: Separar cada nuevo objeto con y sin material oscura.
 
