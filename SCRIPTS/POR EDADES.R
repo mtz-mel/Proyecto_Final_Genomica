@@ -100,6 +100,72 @@ ggplot(df_metricas.niños, aes(x = Métrica, y = Valor, fill = Red)) +
        fill = "Tipo de red") +
   coord_flip()
 
+
+# REDES CON BOOSTRAP
+
+# función para eliminar un porcentaje aleatorio de taxones
+eliminar_taxones_azar <- function(physeq, porcentaje = 0.3) {
+  # extraemos los nombres de taxones
+  taxones <- taxa_names(physeq)
+  
+  # Seleccionar 30% de taxones al azar
+  eliminar <- sample(taxones, size = round(length(taxones) * porcentaje))
+  
+  # filtrar el phyloseq sin esos taxones
+  prune_taxa(setdiff(taxones, eliminar), physeq)
+}
+
+
+#una vez Hecha la funcion la aplicamos para eliminar 30% de taxones
+
+physeq_reducido.niños <- eliminar_taxones_azar(physeq_conocido_filtrado_niños)
+
+# filtrado de prevalencia en la nueva red
+physeq_reducido_filt.niños <- prevalence_filter(physeq_reducido.niños, 0.1)
+
+# hacemos la red con el mismo SPIEC-EASI pero con el phyloseq reducido
+se_reducido.niños <- spiec.easi(
+  physeq_reducido_filt.niños,
+  method = "mb",
+  lambda.min.ratio = 1e-1,
+  nlambda = 20,
+  sel.criterion = "bstars",
+  pulsar.params = list(thresh = 0.1)
+)
+
+# convertimos a objeto igraph
+g_reducido.niños <- adj2igraph(getRefit(se_reducido.niños), vertex.attr = list(name = taxa_names(physeq_reducido_filt.niños)))
+
+# se alcular métricas de la nueva red
+m_reducido.niños <- metricas(g_reducido.niños)
+
+# Visualización de la red reducida
+plot(g_reducido.niños,
+     vertex.size = degree(g_reducido.niños)*2,
+     vertex.color = cluster_louvain(g_reducido.niños)$membership,
+     vertex.label.cex = 0.7,
+     edge.width = 1,
+     main = "Red con 30% de taxones eliminados")
+
+# Crear red en Cytoscape pa verla más bonita 
+  #createNetworkFromIgraph(g_reducido.niños, title = "Red con 30% de taxones eliminados")
+
+#prueba t de Student 
+
+str(metricas_conocido_niños)
+str(metricas_todos_niños)
+
+
+t_test_resultado.niños <- t.test(unlist(metricas_conocido_niños), unlist(metricas_todos_niños), paired = TRUE)
+
+# Mostrar resultados
+tibble(
+  Métrica = names(metricas_todos_niños),
+  P_value_t_Test = t_test_resultado.niños$p.value
+) %>% arrange(P_value_t_Test)
+
+#NO es significativo
+
 #--------------------------------------------------------------------------------------------------
 #INFANTES:
 physeq_spp_infantes <- tax_glom(physeq_infantes, taxrank = "Species", NArm = FALSE)
