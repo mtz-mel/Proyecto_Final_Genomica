@@ -28,6 +28,14 @@ La **materia oscura microbiana** consiste en aquellos taxones que no han podido 
 - RStudio    
 - Cytoscape 3.10.3
 
+## **Flujo de trabajo:**  
+1.- Carpeta "Datos": Contiene los objetos en formato RData de el filtrado que se le hizo al objeto physeq que contiene todos los metadatos y muestras.  
+2.- Carpeta "Funciones": Contiene las funciones utilizadas durante el trabajo, primero se tiene que cargar este archivo para poder correr los scripts.  
+3.- Carpeta "Scripts":  
+-El primer script es el de PAQUETES, contiene todos los paquetes utilizados en los analisis.
+-El segundo script es el manejo de los datos, donde se crea el objeto phyloseq y se filtra en base a los criterios de edad y tipo de muestra.  
+-Los script de POR EDADES, REDES_TODO y HECES_Y_SALIVA contienen los analisis realizados a cada objeto phyloseq que se creo.  
+
 ## **Interpretación de resultados:**  
 El estudio de las comunidades microbianas desconocidas es relevante en el contexto de la biología. A pesar de los múltiples estudios y la aplicación de tecnologías de secuenciación, solo se conoce alrededor del 2% de las especies microbianas presentes en ambientes con condiciones extremas (Zha et al., 2022). El estudio de estas comunidades microbianas, enfocado en el bacterioma, es una herramienta que puede servir para entender la importancia de estos microorganismos en una comunidad y sus funciones ecológicas (Zha et al., 2022).   
 
