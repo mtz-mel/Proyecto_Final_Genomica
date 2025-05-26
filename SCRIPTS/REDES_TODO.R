@@ -150,18 +150,16 @@ ggplot(df_metricas, aes(x = Métrica, y = Valor, fill = Red)) +
        fill = "Tipo de red") +
   coord_flip()
 
+#------------------------------------------------------------------------------#
 
+# REDES CON BOOSTRAP
 
-#####################
-
-#redes con boostrap
-
-# creamos una función para eliminar un porcentaje aleatorio de taxones
+# función para eliminar un porcentaje aleatorio de taxones
 eliminar_taxones_azar <- function(physeq, porcentaje = 0.3) {
   # extraemos los nombres de taxones
   taxones <- taxa_names(physeq)
   
-  # Seleccionar 30% de taxones al azar #es un valor arbitrario no se cual ponerle sjsj
+  # Seleccionar 30% de taxones al azar
   eliminar <- sample(taxones, size = round(length(taxones) * porcentaje))
   
   # filtrar el phyloseq sin esos taxones
@@ -169,7 +167,7 @@ eliminar_taxones_azar <- function(physeq, porcentaje = 0.3) {
 }
 
 
-#una vez echa la funcion la aplicamos para eliminar 30% de taxones
+#una vez Hecha la funcion la aplicamos para eliminar 30% de taxones
 
 physeq_reducido <- eliminar_taxones_azar(physeq_conocido_filtrado)
 
@@ -203,10 +201,9 @@ plot(g_reducido,
 # Crear red en Cytoscape pa verla más bonita 
 createNetworkFromIgraph(g_reducido, title = "Red con 30% de taxones eliminados")
 
-#############################
+#------------------------------------------------------------------------------#
 
-#analisis ya con los 0.1 de filtrado 
-
+# ANÁLISIS ESTADÍSTICOS PARA DETERMINAR SI LOS CAMBIOS SON SIGNIFICATIVOS 
 
 wilcoxon_com <- mapply(function(x, y) wilcox.test(x, y, paired = TRUE), 
                        metricas_conocido, metricas_todos, SIMPLIFY = FALSE)
@@ -235,8 +232,9 @@ tibble(
   P_value_t_Test = t_test_resultado$p.value
 ) %>% arrange(P_value_t_Test)
 
-#########
-#boxplot de las redes 
+#------------------------------------------------------------------------------#
+
+# BOXPLOT DE LAS REDES
 
 library(ggplot2)
 library(tidyr)
@@ -253,7 +251,6 @@ tabla_comparativa_especie <- tibble(
 tabla_comparativa_especie
 
 #boxplot de las redes 
-
 
 # convertir en  formato largo para ggplot
 df_metricas_especie <- tabla_comparativa_especie %>%
@@ -275,14 +272,13 @@ ggplot(df_metricas_especie, aes(x = Red, y = Valor, fill = Red)) +
        y = "Valor de Métrica") 
 
 
-#################
+#------------------------------------------------------------------------------#
 
-#mejor grafica de barras 
+# MEJORAR G´RAFICA DE BARRAS
 
 
 library(ggplot2)
 library(tidyr)
-
 
 
 # Generar la gráfica de barras

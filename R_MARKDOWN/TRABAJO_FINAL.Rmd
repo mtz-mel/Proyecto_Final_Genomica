@@ -186,28 +186,54 @@ plot(g_conocido,
 ![Red con materia obscura](../REDES/CON_MATERIA_OBSCURA.png)
 
 ![Red sin materia obscura](../REDES/SIN_MATERIA_OBSCURA.png)
-```{r}
-# creamos una función para eliminar un porcentaje aleatorio de taxones
+## Redes sin nodos eliminados aleatoriamente
+
+### Manejo de datos iniciales: 
+
+```{r message=FALSE, warning=FALSE}
+SprockettTHData()->dataspo
+class(dataspo)
+
+otu <- assays(dataspo)$counts 
+otu <- as.matrix(otu) 
+tax <- rowData(dataspo)
+tax <- as.matrix(as.data.frame(tax))  
+sample_data <- colData(dataspo) 
+sample_data <- as.data.frame(sample_data) 
+
+OTU <- otu_table(otu, taxa_are_rows = TRUE) 
+View(OTU)
+TAX <- tax_table(tax) 
+SAMPLES <- sample_data(sample_data)  
+
+class(OTU)
+class(SAMPLES)
+
+physeq <- phyloseq(OTU, TAX, SAMPLES)  
+```
+
+### Creación de función para eliminar taxones de forma aleatoria:
+
+```{r message=FALSE, warning=FALSE}
 eliminar_taxones_azar <- function(physeq, porcentaje = 0.3) {
-  # extraemos los nombres de taxones
   taxones <- taxa_names(physeq)
-  
-  # Seleccionar 30% de taxones al azar #es un valor arbitrario no se cual ponerle sjsj
   eliminar <- sample(taxones, size = round(length(taxones) * porcentaje))
-  
-  # filtrar el phyloseq sin esos taxones
   prune_taxa(setdiff(taxones, eliminar), physeq)
 }
 
-
-#una vez echa la funcion la aplicamos para eliminar 30% de taxones
-
 physeq_reducido <- eliminar_taxones_azar(physeq_conocido_filtrado)
 
-# filtrado de prevalencia en la nueva red
-physeq_reducido_filt <- prevalence_filter(physeq_reducido, 0.1)
+filtrar_prevalencia <- function(physeq_objeto, umbral = 0.1) {
+  prevalencia <- apply(otu_table(physeq_objeto), 1, function(x) mean(x > 0))
+  conservar <- names(prevalencia[prevalencia >= umbral])
+  prune_taxa(conservar, physeq_objeto)
+}
+physeq_reducido_filt <- filtrar_prevalencia(physeq_reducido, 0.1)
+```
 
-# hacemos la red con el mismo SPIEC-EASI pero con el phyloseq reducido
+### Elaboración de red sin taxones al azar
+
+```{r message=FALSE, warning=FALSE}
 se_reducido <- spiec.easi(
   physeq_reducido_filt,
   method = "mb",
@@ -217,30 +243,39 @@ se_reducido <- spiec.easi(
   pulsar.params = list(thresh = 0.1)
 )
 
-# convertimos a objeto igraph
 g_reducido <- adj2igraph(getRefit(se_reducido), vertex.attr = list(name = taxa_names(physeq_reducido_filt)))
+```
 
-# se alcular métricas de la nueva red
+### Calculo de métricas de la red
+
+```{r warning=FALSE}
+metricas <- function(g) {
+  list(
+    nodos = vcount(g),
+    aristas = ecount(g),
+    grado_medio = mean(degree(g)),
+    densidad = edge_density(g),
+    clustering = transitivity(g, type = "global"),
+    modularidad = modularity(cluster_louvain(g))
+  )
+}
+
 m_reducido <- metricas(g_reducido)
-
-# Visualización de la red reducida 
 ```
 
 Redes con objetos filtrados.
 
-### **Edición de la red**
+### Edición de la red en Cytoscape para poder visualizarla de mejor manera:
 
 ![](images/Red%20con%20taxones%20eliminados.jpeg)
 
-### **Tabla comparativa**
+### Comparación de medidas de centralidad de todas las redes creadas hasta el momento
 
-```{r}
-#  para cada red
+```{r warning=FALSE}
 metricas_todos <- calcular_metricas(g_todos)
 metricas_conocido <- calcular_metricas(g_conocido)
-metricas_bootstrap <- calcular_metricas(g_reducido)  # Red con 30% de taxones eliminados
+metricas_bootstrap <- calcular_metricas(g_reducido)  
 
-# Crear tabla comparativa de métricas
 tabla_comparativa_especie <- tibble(
   Métrica = names(metricas_todos),
   Con_materia_obscura = unlist(metricas_todos),
@@ -248,18 +283,15 @@ tabla_comparativa_especie <- tibble(
   Bootstrap = unlist(metricas_bootstrap)
 )
 
-# Mostrar la tabla
 print(tabla_comparativa_especie)
 ```
 
-**Comparación de métricas en gráfica**
+### Visualización de gráfica comparativa
 
-```{r}
-# convertir en  formato largo para ggplot
+```{r warning=FALSE}
 df_metricas_especie <- tabla_comparativa_especie %>%
   pivot_longer(cols = -Métrica, names_to = "Red", values_to = "Valor")
 
-# grafica de metricas
 ggplot(df_metricas_especie, aes(x = Métrica, y = Valor, fill = Red)) +
   geom_bar(stat = "identity", position = "dodge", color = "black") +  #
   scale_fill_manual(values = c("Con_materia_obscura" = "lightblue", 
@@ -272,12 +304,13 @@ ggplot(df_metricas_especie, aes(x = Métrica, y = Valor, fill = Red)) +
        y = "Valor de métrica") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-
 ```
+
+## Gráficas con y sin materia obscura tomando en cuenta únicamente las muestras de heces
 
 ### Filtrado de los datos.
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 physeq_feces <- subset_samples(physeq, Sample_Type == "Feces")
 
 physeq_saliva <- subset_samples(physeq, Sample_Type == "Saliva") 
@@ -375,7 +408,7 @@ feces_all   <- adj2igraph(getRefit(feces_all),
 
 ### Cálculo de métricas de centralidad:
 
-```{r}
+```{r warning=FALSE}
 #
 metricas <- function(g) {
   list(
@@ -433,6 +466,7 @@ Red con materia oscura heces:
 Red sin materia oscura heces:
 
 ![](images/Red%20sin%20materia%20obscura%20solo%20heces.png)
+## Gráficas con y sin materia obscura tomando en cuenta únicamente las muestras de saliva
 
 ### Objeto Saliva: Separar cada nuevo objeto con y sin material oscura.
 
