@@ -37,9 +37,15 @@ En nuestro proyecto observamos que las redes cambian su estructura si se toman e
 
 La red creada con materia oscura tiene presencia de múltiples taxones caracterizados de color morado, los cuales representan nodos centrales con una importancia ecológica significativa, ya que en comparación con la red creada sin la materia oscura, esta última se observa con una densidad menor, al igual que una disminución en el número de nodos con un alto grado de conexiones, disminuyendo así la interconectividad de la comunidad. Esto se ve reflejado en la disminución de las conexiones entre taxones, así como del betweenness y el diámetro, lo cual se ve reflejado en la estructura de la red. Esto señala que la materia oscura microbiana es parte de la estabilidad de la comunidad. Sin embargo, a pesar de que estas diferencias son observables, no se encontraron diferencias significativas entre el degree, diámetro, betweenness y clustering de las redes cuando se realizaron las pruebas estadísticas. Esto sugiere que, debido a que la microbiota es clave para el desarrollo del sistema inmunitario tanto para que un individuo conserve la homeostasis (Álvarez et al., 2021), los taxones importantes ya han sido clasificados, por lo que aunque la materia oscura forma parte importante de la comunidad, no son indispensables para la red, ya que podría tener mecanismos de resiliencia que hagan que la red pueda mantener su estabilidad aun cuando la estructura de la red cambia.   
 
+## **Licencia:**
+
+Este proyecto está bajo la Licencia MIT [LICENSE](LICENSE). Como parte del curso de Genómica Funcional con fines educativos. Copyright (c) 2025 mtz-mel
+
 ## **Referencias:**     
 - Álvarez, J., Fernández Real, J. M., Guarner, F., Gueimonde, M., Rodríguez, J. M., Saenz de Pipaon, M., & Sanz, Y. (2021). Microbiota intestinal y salud. Gastroenterología y Hepatología, 44(7), 519-535. https://doi.org/10.1016/j.gastrohep.2021.01.009
 - Del Campo-Moreno, R., Alarcón-Cavero, T., D’Auria, G., Delgado-Palacio, S., & Ferrer-Martínez, M. (2018). Microbiota and Human Health: Characterization techniques and transference. Enfermedades Infecciosas y Microbiologia Clinica (English Ed ), 36(4), 241-245. https://doi.org/10.1016/j.eimce.2018.02.016  
-- Sprockett, D. D., Martin, M., Costello, E. K., Burns, A. R., Holmes, S. P., Gurven, M. D., & Relman, D. A. (2020). Microbiota assembly, structure, and dynamics among Tsimane horticulturalists of the Bolivian Amazon. Nature Communications, 11(1). https://doi.org/10.1038/s41467-020-17541-6  
+- Sprockett, D. D., Martin, M., Costello, E. K., Burns, A. R., Holmes, S. P., Gurven, M. D., & Relman, D. A. (2020). Microbiota assembly, structure, and dynamics among Tsimane horticulturalists of the Bolivian Amazon. Nature Communications, 11(1). https://doi.org/10.1038/s41467-020-17541-6
+- Kurtz, Z. D., Müller, C. L., Miraldi, E. R., Littman, D. R., Blaser, M. J., & Bonneau, R. A. (2015). Sparse and compositionally robust inference of microbial ecological networks. PLoS Computational Biology, 11(5), e1004226. https://doi.org/10.1371/journal.pcbi.1004226
 - Zamkovaya, T., Foster, J. S., De Crécy-Lagard, V., & Conesa, A. (2020). A network approach to elucidate and prioritize microbial dark matter in microbial communities. The ISME Journal, 15(1), 228–244. https://doi.org/10.1038/s41396-020-00777-x
+  
 
