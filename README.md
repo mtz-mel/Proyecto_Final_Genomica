@@ -28,7 +28,7 @@ La **materia oscura microbiana** consiste en aquellos taxones que no han podido 
 - RStudio    
 - Cytoscape 3.10.3
 
-# **Interpretación de resultados:**  
+## **Interpretación de resultados:**  
 El estudio de las comunidades microbianas desconocidas es relevante en el contexto de la biología. A pesar de los múltiples estudios y la aplicación de tecnologías de secuenciación, solo se conoce alrededor del 2% de las especies microbianas presentes en ambientes con condiciones extremas (Zha et al., 2022). El estudio de estas comunidades microbianas, enfocado en el bacterioma, es una herramienta que puede servir para entender la importancia de estos microorganismos en una comunidad y sus funciones ecológicas (Zha et al., 2022).   
 
 Para el estudio del bacterioma con un enfoque en taxones desconocidos, recreamos la metodología usada en Zamkovaya et al., 2020. En este estudio y en otros estudios, el enfoque se centra en ambientes extremos donde se desconoce la mayoría de los taxones. En el caso de la microbiota humana, el enfoque se centra más en estudios médicos y se conoce qué taxones están asociados a condiciones de enfermedad y cuáles a un estado de salud (Del Campo-Moreno et al., 2018).   
