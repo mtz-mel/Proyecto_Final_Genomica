@@ -186,6 +186,7 @@ plot(g_conocido,
 ![Red con materia obscura](../REDES/CON_MATERIA_OBSCURA.png)
 
 ![Red sin materia obscura](../REDES/SIN_MATERIA_OBSCURA.png)
+<<<<<<< HEAD
 ## Redes sin nodos eliminados aleatoriamente
 
 ### Manejo de datos iniciales: 
@@ -215,6 +216,13 @@ physeq <- phyloseq(OTU, TAX, SAMPLES)
 ### Creación de función para eliminar taxones de forma aleatoria:
 
 ```{r message=FALSE, warning=FALSE}
+=======
+
+**Red sin taxones aleatorios**
+
+```{r}
+# creamos una función para eliminar un porcentaje aleatorio de taxones
+>>>>>>> 12195784491315dbf16dccaede9ff5bb82c43582
 eliminar_taxones_azar <- function(physeq, porcentaje = 0.3) {
   taxones <- taxa_names(physeq)
   eliminar <- sample(taxones, size = round(length(taxones) * porcentaje))
@@ -260,12 +268,22 @@ metricas <- function(g) {
   )
 }
 
+<<<<<<< HEAD
 m_reducido <- metricas(g_reducido)
 ```
 
 Redes con objetos filtrados.
 
 ### Edición de la red en Cytoscape para poder visualizarla de mejor manera:
+=======
+# se alcular métricas de la nueva red
+m_reducido <- calcular_metricas(g_reducido)
+
+# Visualización de la red reducida 
+```
+
+### **Edición de la red**
+>>>>>>> 12195784491315dbf16dccaede9ff5bb82c43582
 
 ![](images/Red%20con%20taxones%20eliminados.jpeg)
 
