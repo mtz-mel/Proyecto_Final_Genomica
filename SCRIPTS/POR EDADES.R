@@ -116,6 +116,7 @@ eliminar_taxones_azar <- function(physeq, porcentaje = 0.3) {
 }
 
 
+
 #una vez Hecha la funcion la aplicamos para eliminar 30% de taxones
 
 physeq_reducido.niños <- eliminar_taxones_azar(physeq_conocido_filtrado_niños)
@@ -165,6 +166,10 @@ tibble(
 ) %>% arrange(P_value_t_Test)
 
 #NO es significativo
+unlist(metricas_conocido_niños$grado_medio)
+unlist(metricas_todos_niños$grado_medio)
+
+t.test(2.35483871, 6.555556)#, paired = TRUE)
 
 #--------------------------------------------------------------------------------------------------
 #INFANTES:
