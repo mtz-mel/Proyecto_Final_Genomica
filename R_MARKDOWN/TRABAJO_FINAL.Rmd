@@ -186,8 +186,9 @@ plot(g_conocido,
 ![Red con materia obscura](../REDES/CON_MATERIA_OBSCURA.png)
 
 ![Red sin materia obscura](../REDES/SIN_MATERIA_OBSCURA.png)
-<<<<<<< HEAD
+
 ## Redes sin nodos eliminados aleatoriamente
+
 
 ### Manejo de datos iniciales: 
 
@@ -216,13 +217,6 @@ physeq <- phyloseq(OTU, TAX, SAMPLES)
 ### Creación de función para eliminar taxones de forma aleatoria:
 
 ```{r message=FALSE, warning=FALSE}
-=======
-
-**Red sin taxones aleatorios**
-
-```{r}
-# creamos una función para eliminar un porcentaje aleatorio de taxones
->>>>>>> 12195784491315dbf16dccaede9ff5bb82c43582
 eliminar_taxones_azar <- function(physeq, porcentaje = 0.3) {
   taxones <- taxa_names(physeq)
   eliminar <- sample(taxones, size = round(length(taxones) * porcentaje))
@@ -268,22 +262,12 @@ metricas <- function(g) {
   )
 }
 
-<<<<<<< HEAD
 m_reducido <- metricas(g_reducido)
 ```
 
 Redes con objetos filtrados.
 
 ### Edición de la red en Cytoscape para poder visualizarla de mejor manera:
-=======
-# se alcular métricas de la nueva red
-m_reducido <- calcular_metricas(g_reducido)
-
-# Visualización de la red reducida 
-```
-
-### **Edición de la red**
->>>>>>> 12195784491315dbf16dccaede9ff5bb82c43582
 
 ![](images/Red%20con%20taxones%20eliminados.jpeg)
 
@@ -348,7 +332,7 @@ physeq_feces <- subset_samples(physeq, Sample_Type == "Feces")
 
 
 physeq_spp_f <- tax_glom(physeq_feces, taxrank = "Species", NArm = FALSE) #agrupacion a nivel de especie
-  #esta incluye las NA
+#esta incluye las NA
 
 physeq_sindm     <- subset_taxa(physeq_spp_f, !is.na(Species))  # sin materia oscura
 physeq_conmd      <- physeq_spp_f  # con materia oscura
@@ -394,7 +378,7 @@ physeq_all_filt.feces    <- renombrar_especies(physeq_all_filt.feces)
 ### Construcción de redes con SPIEC-EASI que utiliza el método de co-ocurrencia:
 
 ```{r message=FALSE, warning=FALSE}
- #REDES SPIEC-EASI
+#REDES SPIEC-EASI
 #analsiis de redes de co-ocurrencia 
 feces_known <- spiec.easi( #NO DM
   physeq_known_filt.feces,
@@ -438,6 +422,7 @@ metricas <- function(g) {
     modularidad = modularity(cluster_louvain(g))
   )
 }
+
 #
 feces.m_known <- metricas(feces_known)
 feces.m_all   <- metricas(feces_all)
@@ -478,12 +463,12 @@ plot(feces_known,
 ### Edición de las redes en Cytoscape para poder visualizarlas de mejor manera:
 
 Red con materia oscura heces:
-
-![](images/Red%20con%20materia%20obscura%20solo%20heces.png)
+  
+  ![](images/Red%20con%20materia%20obscura%20solo%20heces.png)
 
 Red sin materia oscura heces:
-
-![](images/Red%20sin%20materia%20obscura%20solo%20heces.png)
+  
+  ![](images/Red%20sin%20materia%20obscura%20solo%20heces.png)
 ## Gráficas con y sin materia obscura tomando en cuenta únicamente las muestras de saliva
 
 ### Objeto Saliva: Separar cada nuevo objeto con y sin material oscura.
@@ -563,9 +548,9 @@ saliva_all <- spiec.easi(
 
 ```{r message=FALSE, warning=FALSE}
 saliva_known <- adj2igraph(getRefit(saliva_known), 
-                          vertex.attr = list(name = taxa_names(physeq_known_filt.saliva)))
+                           vertex.attr = list(name = taxa_names(physeq_known_filt.saliva)))
 saliva_all   <- adj2igraph(getRefit(saliva_all),   
-                          vertex.attr = list(name = taxa_names(physeq_all_filt.saliva)))
+                           vertex.attr = list(name = taxa_names(physeq_all_filt.saliva)))
 ```
 
 ### Cálculo de métricas de centralidad:
@@ -622,12 +607,12 @@ plot(saliva_known,
 ### Edición de las redes en Cytoscape para poder visualizarlas de mejor manera:
 
 Red con materia oscura saliva:
-
-![](images/Red%20con%20materia%20obscura%20solo%20saliva.png)
+  
+  ![](images/Red%20con%20materia%20obscura%20solo%20saliva.png)
 
 Red sin materia oscura saliva:
-
-![](images/Red%20sin%20materia%20obscura%20solo%20saliva.png)
+  
+  ![](images/Red%20sin%20materia%20obscura%20solo%20saliva.png)
 
 ### Objeto niños: Separar cada nuevo objeto con y sin material oscura.
 
@@ -760,12 +745,12 @@ plot(g_conocido.niños,
 ### Edición de las redes en Cytoscape para poder visualizarlas de mejor manera:
 
 Con materia oscura en niños (heces y saliva):
-
-![](images/Red%20con%20materia%20obscura%20adultos-01.png)
+  
+  ![](images/Red%20con%20materia%20obscura%20adultos-01.png)
 
 Sin materia oscura en niños (heces y saliva):
-
-![](images/Red%20sin%20materia%20oscura%20en%20niños.png)
+  
+  ![](images/Red%20sin%20materia%20oscura%20en%20niños.png)
 
 ### Objeto infantes: Separar cada nuevo objeto con y sin material oscura.
 
@@ -897,12 +882,12 @@ plot(g_conocido.infantes,
 ### Edición de las redes en Cytoscape para poder visualizarlas de mejor manera:
 
 Con materia oscura en infantes (heces y saliva):
-
-![](images/Red%20con%20materia%20oscura%20en%20infantes.png)
+  
+  ![](images/Red%20con%20materia%20oscura%20en%20infantes.png)
 
 Sin materia oscura infantes (saliva y heces):
-
-![](images/Red%20sin%20materia%20oscura%20en%20infantes.png)
+  
+  ![](images/Red%20sin%20materia%20oscura%20en%20infantes.png)
 
 ### Objeto Adultos: Separar cada nuevo objeto con y sin material oscura.
 
@@ -980,7 +965,7 @@ red_todos_adultos <- spiec.easi(
 
 ```{r}
 g_conocido.adultos <- adj2igraph(getRefit(red_conocido_adultos), 
-                                  vertex.attr = list(name = taxa_names(physeq_conocido_filtrado.adultos)))
+                                 vertex.attr = list(name = taxa_names(physeq_conocido_filtrado.adultos)))
 
 g_todos.adultos  <- adj2igraph(getRefit(red_todos_adultos),    
                                vertex.attr = list(name = taxa_names(physeq_todos_filtrado.adultos)))
@@ -1037,9 +1022,10 @@ plot(g_conocido.adultos,
 ### Edición de las redes en Cytoscape para poder visualizarlas de mejor manera:
 
 Con materia oscura en adultos (heces y saliva):
-
-![](images/Red%20con%20materia%20obscura%20adultos.png)
+  
+  ![](images/Red%20con%20materia%20obscura%20adultos.png)
 
 Sin materia oscura adultos (saliva y heces):
+  
+  ![](images/Red%20sin%20materia%20obscura%20adultos.png)
 
-![](images/Red%20sin%20materia%20obscura%20adultos.png)
