@@ -16,4 +16,9 @@ library(tidyverse)
 library(microbiomeDataSets)  
 library(mia)  
 library(phyloseq)  
-library(SpiecEasi)  
+library(SpiecEasi)    
+
+**Programas utilizados:**  
+R 4.4.1  
+RStudio  
+Cytoscape 3.10.3  
