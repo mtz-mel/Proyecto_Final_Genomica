@@ -187,6 +187,11 @@ plot(g_conocido,
 
 ![Red sin materia obscura](../REDES/SIN_MATERIA_OBSCURA.png)
 
+<<<<<<< HEAD
+=======
+**Red sin taxones aleatorios**
+
+>>>>>>> 1264a0a3dc4349a712ea16720628467cfa2cd7af
 ```{r}
 # creamos una función para eliminar un porcentaje aleatorio de taxones
 eliminar_taxones_azar <- function(physeq, porcentaje = 0.3) {
