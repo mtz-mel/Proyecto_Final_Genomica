@@ -20,29 +20,33 @@ datos_sprockett <- SprockettTHData()
 ncol(datos_sprockett)
 
 # MATRICES
-matriz_otu <- assays(datos_sprockett)$counts %>% as.matrix()
+matriz_otu <- assays(datos_sprockett)$counts %>% as.matrix() 
 matriz_tax <- rowData(datos_sprockett) %>% as.data.frame() %>% as.matrix()
 datos_muestras <- colData(datos_sprockett) %>% as.data.frame()
 
 # CONSTRUCCIÓN DE OBJETO PHYLOSEQ
-OTU <- otu_table(matriz_otu, taxa_are_rows = TRUE)
+OTU <- otu_table(matriz_otu, taxa_are_rows = TRUE) #se crean tablas apartir de las matrices de los datos
 TAX <- tax_table(matriz_tax)
 MUESTRAS <- sample_data(datos_muestras)
-physeq <- phyloseq(OTU, TAX, MUESTRAS)
+physeq <- phyloseq(OTU, TAX, MUESTRAS) #se crea un objeto phyloseq que une los OTUS, TAXAS y las muestras
 
 # AGRUPACIÓN A NIVEL DE ESPECIE (INCLUYENDO NA)
-physeq_especie <- tax_glom(physeq, taxrank = "Species", NArm = FALSE)
+physeq_especie <- tax_glom(physeq, taxrank = "Species", NArm = FALSE) # tax_glom agruoa las OTUS a nivel de especie, taxrank especifica el nivel taxonomico que queremos agurpar,
+                                                                      #NArm=FALSE indica que queresmos quedarnos con los datos aunque no tengan asignacion a nivel de especie
 
 # DIVISIÓN SEGÚN PRESENCIA DE MATERIA OSCURA
 physeq_conocido <- subset_taxa(physeq_especie, !is.na(Species))  # sin materia obscura
 physeq_todos <- physeq_especie  # con materia obscura
 
 # FUNCIÓN DE FILTRADO POR PREVALENCIA
+#se realizó una funcion donde para cada otu calcular las muestras donde haya una abundancia mayor a 0 y se conservan unicamente los nombres de los OTUS que tengan una prevalencia mayor a 10%
+#y se crea un objeto phyloseq que contiene los otus antes seleccionados
+
 filtrar_prevalencia <- function(physeq_objeto, umbral = 0.1) {
   prevalencia <- apply(otu_table(physeq_objeto), 1, function(x) mean(x > 0))
   conservar <- names(prevalencia[prevalencia >= umbral])
   prune_taxa(conservar, physeq_objeto)
-}
+}  
 
 physeq_conocido_filtrado <- filtrar_prevalencia(physeq_conocido, 0.1)
 physeq_todos_filtrado    <- filtrar_prevalencia(physeq_todos, 0.1)
@@ -69,6 +73,8 @@ physeq_conocido_filtrado <- renombrar_especies(physeq_conocido_filtrado)
 physeq_todos_filtrado    <- renombrar_especies(physeq_todos_filtrado)
 
 # CONSTRUCCIÓN DE REDES CON SPIEC-EASI
+
+#se usa el metodo meinshausen-Buhlmann neighborhood selection
 red_conocido <- spiec.easi(
   physeq_conocido_filtrado,
   method = "mb",
@@ -92,6 +98,7 @@ g_conocido <- adj2igraph(getRefit(red_conocido), vertex.attr = list(name = taxa_
 g_todos    <- adj2igraph(getRefit(red_todos),    vertex.attr = list(name = taxa_names(physeq_todos_filtrado)))
 
 # FUNCIÓN PARA CALCULAR MÉTRICAS DE LA RED
+
 calcular_metricas <- function(grafo) {
   list(
     nodos = vcount(grafo),
@@ -108,6 +115,7 @@ metricas_conocido <- calcular_metricas(g_conocido)
 metricas_todos    <- calcular_metricas(g_todos)
 
 # COMPARACIÓN DE MÉTRICAS
+#se hace una tabla que contenga las metricas tanto de la red con y sin meteria obscura
 tabla_comparativa <- tibble(
   Métrica              = names(metricas_todos),
   Con_materia_obscura  = unlist(metricas_todos),
@@ -116,6 +124,7 @@ tabla_comparativa <- tibble(
 print(tabla_comparativa)
 
 # VISUALIZACIÓN DE LAS REDES
+
 plot(g_todos,
      vertex.size = degree(g_todos)*2,
      vertex.color = cluster_louvain(g_todos)$membership,
@@ -154,22 +163,21 @@ ggplot(df_metricas, aes(x = Métrica, y = Valor, fill = Red)) +
 
 # REDES CON BOOSTRAP
 
-# función para eliminar un porcentaje aleatorio de taxones
+# se crea una función para eliminar un porcentaje aleatorio de taxones
+# extraemos los nombres de taxones
+# seleccionar 30% de taxones al azar
+# filtrar el phyloseq sin esos taxones
 eliminar_taxones_azar <- function(physeq, porcentaje = 0.3) {
-  # extraemos los nombres de taxones
   taxones <- taxa_names(physeq)
-  
-  # Seleccionar 30% de taxones al azar
   eliminar <- sample(taxones, size = round(length(taxones) * porcentaje))
-  
-  # filtrar el phyloseq sin esos taxones
   prune_taxa(setdiff(taxones, eliminar), physeq)
 }
 
 
-#una vez Hecha la funcion la aplicamos para eliminar 30% de taxones
+#una vez Hecha la funcion la aplicamos para eliminar 30% de taxones 
 
 physeq_reducido <- eliminar_taxones_azar(physeq_conocido_filtrado)
+
 
 # filtrado de prevalencia en la nueva red
 physeq_reducido_filt <- prevalence_filter(physeq_reducido, 0.1)
@@ -187,7 +195,7 @@ se_reducido <- spiec.easi(
 # convertimos a objeto igraph
 g_reducido <- adj2igraph(getRefit(se_reducido), vertex.attr = list(name = taxa_names(physeq_reducido_filt)))
 
-# se alcular métricas de la nueva red
+# se alcular métricas de la nueva red con la funcion antes creada
 m_reducido <- metricas(g_reducido)
 
 # Visualización de la red reducida
@@ -204,33 +212,22 @@ createNetworkFromIgraph(g_reducido, title = "Red con 30% de taxones eliminados")
 #------------------------------------------------------------------------------#
 
 # ANÁLISIS ESTADÍSTICOS PARA DETERMINAR SI LOS CAMBIOS SON SIGNIFICATIVOS 
+#se realiza la prueba de xilcoxon, se utiliza mapply para aplicarla a cada una de las metricas 
 
 wilcoxon_com <- mapply(function(x, y) wilcox.test(x, y, paired = TRUE), 
                        metricas_conocido, metricas_todos, SIMPLIFY = FALSE)
 
 # Extraer valores p
+#se utiliza sapply para que lo de en un vector numerico
 P_values_wilcoxon <- sapply(wilcoxon_com, function(x) x$p.value)
 
-# Mostrar resultados
+# Mostrar resultados en una tabla con los nombres de las metricas y los valores de p
 tibble(
   Métrica = names(metricas_todos),
   P_value_Wilcoxon = P_values_wilcoxon
 ) %>% arrange(P_value_Wilcoxon)
 
 
-#  prueba t de Student 
-
-str(metricas_conocido)
-str(metricas_todos)
-
-
-t_test_resultado <- t.test(unlist(metricas_conocido), unlist(metricas_todos), paired = TRUE)
-
-# Mostrar resultados
-tibble(
-  Métrica = names(metricas_todos),
-  P_value_t_Test = t_test_resultado$p.value
-) %>% arrange(P_value_t_Test)
 
 #------------------------------------------------------------------------------#
 
@@ -240,7 +237,7 @@ library(ggplot2)
 library(tidyr)
 
 
-# primera creaamos  una tabla comparativa con los datos de las tres redes
+# primera creaamos  una tabla comparativa con los datos de las tres redes (metricas)
 tabla_comparativa_especie <- tibble(
   Métrica = names(metricas_all),
   Con_materia_obscura = unlist(m_all),
@@ -252,11 +249,15 @@ tabla_comparativa_especie
 
 #boxplot de las redes 
 
-# convertir en  formato largo para ggplot
+# convertir en  formato largo para poder trabajar con ggplot 
+#esto se hace con la funcion pivot_longer, cols hace que la columna metrica sea el identificador
+#names_to combina los nombres de columnas en una variable categorica
+#values_to combina todo en una sola columna
 df_metricas_especie <- tabla_comparativa_especie %>%
   pivot_longer(cols = -Métrica, names_to = "Red", values_to = "Valor")
 
-# hacemos los boxplot
+# hacemos los boxplot utilizando ggplot, el color de relleno es deacuerdo al tipo de red.  
+
 ggplot(df_metricas_especie, aes(x = Red, y = Valor, fill = Red)) +
   geom_boxplot() +
   facet_wrap(~ Métrica, scales = "free") +  # para separar cada metrica en su propio box
@@ -281,7 +282,7 @@ library(ggplot2)
 library(tidyr)
 
 
-# Generar la gráfica de barras
+# se crea unerar una grafica de barras con ggplot 2 que muuestra las metricas de las 3 redes
 ggplot(df_metricas_especie, aes(x = Métrica, y = Valor, fill = Red)) +
   geom_bar(stat = "identity", position = "dodge", color = "black") +  #
   scale_fill_manual(values = c("Con_materia_obscura" = "lightblue", 
